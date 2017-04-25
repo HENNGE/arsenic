@@ -1,10 +1,10 @@
 from selenium.webdriver import FirefoxProfile
 from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
 from selenium.webdriver.firefox.options import Options
-from selenium.webdriver.firefox.webelement import FirefoxWebElement
 
 from arsenic.connection import RemoteConnection
 from arsenic.drivers import RemoteDriver
+from arsenic.drivers.remote import RemoteWebElement
 from arsenic.service import Service
 
 import shutil
@@ -58,6 +58,34 @@ class FirefoxContext:
         finally:
             await self.set_context(initial_context)
 
+
+class FirefoxWebElement(RemoteWebElement):
+    async def get_anonymous_children(self):
+        """Retrieve the anonymous children of this element in an XBL
+        context.  This is only available in chrome context.
+
+        See the  `anonymous content documentation
+        <https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XBL/XBL_1.0_Reference/Anonymous_Content>`_
+        on MDN for more information.
+
+        """
+        return await self._execute(
+            "ELEMENT_GET_ANONYMOUS_CHILDREN",
+            {"value": None})
+
+    async def find_anonymous_element_by_attribute(self, name, value):
+        """Retrieve an anonymous descendant with a specified attribute
+        value.  Typically used with an (arbitrary) anonid attribute to
+        retrieve a specific anonymous child in an XBL binding.
+
+        See the  `anonymous content documentation
+        <https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XBL/XBL_1.0_Reference/Anonymous_Content>`_
+        on MDN for more information.
+
+        """
+        return (await self._execute(
+            "ELEMENT_FIND_ANONYMOUS_ELEMENTS_BY_ATTRIBUTE",
+            {"name": name, "value": value}))["value"]
 
 
 class FirefoxDriver(RemoteDriver):
