@@ -16,6 +16,9 @@ setup(
         ],
         'tornado': [
             'tornado>=4.5'
+        ],
+        'twisted': [
+            'twisted>=17'
         ]
     },
 )

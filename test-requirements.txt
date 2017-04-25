@@ -1,7 +1,9 @@
 pytest
 pytest-tornado
 pytest-asyncio
+pytest-twisted
 pytest-timeout
 pytest-cov
 aiohttp
 tornado
+twisted
