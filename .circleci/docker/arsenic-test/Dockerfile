@@ -2,7 +2,7 @@ FROM ubuntu:zesty
 
 RUN apt-get update
 
-RUN apt-get install -y xvfb python3.6 python3.6-venv python3.6-dev firefox
+RUN apt-get install -y xvfb python3.6 python3.6-venv python3.6-dev firefox build-essential
 
 COPY geckodriver-v0.16.0-linux64.tar.gz geckodriver-v0.16.0-linux64.tar.gz
 
