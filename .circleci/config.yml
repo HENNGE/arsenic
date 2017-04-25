@@ -11,7 +11,7 @@ jobs:
       - run: /home/ubuntu/arsenic-env/bin/pip install -e .
       - run: /home/ubuntu/arsenic-env/bin/pip install -r test-requirements.txt
       - run: find . -regex '.*__pycache__.*' -delete
-      - run: xvfb-run /home/ubuntu/arsenic-env/bin/pytest --verbose --cov=src/arsenice --cov-report=html:reports/coverage/ --junitxml=reports/results/junit.xml --timeout=60
+      - run: xvfb-run /home/ubuntu/arsenic-env/bin/pytest --verbose --cov=src/arsenic --cov-report=html:reports/coverage/ --junitxml=reports/results/junit.xml --timeout=60
       - store_artifacts:
           path: reports/coverage/
           destination: reports

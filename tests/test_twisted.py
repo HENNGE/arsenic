@@ -20,8 +20,12 @@ class Index(Resource):
 
 @pytest.mark.xfail
 @pytest.inlineCallbacks
-async def test_get_page_source():
+def test_get_page_source():
     port = reactor.listenTCP(0, Site(Index())).getHost().port
-    async with drivers.context(drivers.ChromeDriver, TwistedClient) as driver:
-        await driver.get(f'http://127.0.0.1:{port}/')
-        assert 'Hello Twisted!' in await driver.get_page_source()
+    driver = yield drivers.init(drivers.ChromeDriver, TwistedClient)
+    try:
+        yield driver.get(f'http://127.0.0.1:{port}/')
+        source = yield driver.get_page_source()
+        assert 'Hello Twisted!' in source
+    finally:
+        yield driver.quit()
