@@ -1,6 +1,6 @@
 pytest
 pytest-tornado
-pytest-asyncio
+https://github.com/pytest-dev/pytest-asyncio/archive/master.zip
 pytest-twisted
 pytest-timeout
 pytest-cov
