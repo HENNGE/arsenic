@@ -1,5 +1,7 @@
 # Async Selenium
 
+[![CircleCI](https://circleci.com/gh/ojii/arsenic.svg?style=svg)](https://circleci.com/gh/ojii/arsenic)
+
 You probably don't want to use this yet, if you want to help out, that'd be great!
 
 ## Major differences
