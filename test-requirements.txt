@@ -1,0 +1,7 @@
+pytest
+pytest-tornado
+pytest-asyncio
+pytest-timeout
+pytest-cov
+aiohttp
+tornado
