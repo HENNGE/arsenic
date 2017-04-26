@@ -5,6 +5,7 @@ from typing import TextIO, Dict, List
 import attr
 from tornado.gen import sleep
 from tornado.httpclient import AsyncHTTPClient, HTTPRequest, HTTPError
+from tornado.ioloop import IOLoop
 from tornado.process import Subprocess
 
 from arsenic.engines import Request, Response, Engine, Headers
@@ -52,8 +53,11 @@ class ProcessContext:
 
     async def close(self):
         self.process.proc.terminate()
+        io_loop = IOLoop.current()
+        handle = io_loop.call_later(5, self.process.proc.kill)
         await self.process.wait_for_exit(False)
-        self.process.proc.kill()
+        io_loop.remove_timeout(handle)
+        self.process = None
 
 
 async def init_session(auth=None):
