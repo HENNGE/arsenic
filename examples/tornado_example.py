@@ -1,41 +1,64 @@
-from tornado.httpserver import HTTPServer
+import os
+
 from tornado.ioloop import IOLoop
-from tornado.web import Application, RequestHandler
 
-from arsenic.clients.tornado import TornadoClient
-import base
-
-
-async def run_selenium(port):
-    print('Hello Tornado!' in await base.run_selenium(port, TornadoClient))
+from arsenic.engines import BasicAuth
+from arsenic.engines.tornado import Tornado
+from arsenic.browsers import Firefox
+from arsenic.services import Geckodriver, Remote
 
 
-# Simple Tornado app
-class Index(RequestHandler):
-    async def get(self):
-        self.set_header('Content-Type', 'text/plain')
-        self.finish('Hello Tornado!')
+async def get_example_h1_context_manager(service, engine):
+    async with service.run(engine) as driver:
+        async with driver.session(Firefox()) as session:
+            await session.get('http://example.com/')
+            element = await session.get_element('h1')
+            print(await element.get_text())
 
 
-def build_app():
-    return Application([
-        ('/', Index)
-    ])
+async def get_example_h1_functional(service, engine):
+    driver = await service.start(engine)
+    try:
+        session = await driver.new_session(Firefox())
+        try:
+            await session.get('http://example.com/')
+            element = await session.get_element('h1')
+            print(await element.get_text())
+        finally:
+            await session.close()
+    finally:
+        await driver.close()
+
+
+async def gecko(func):
+    await func(
+        Geckodriver(),
+        Tornado
+    )
+
+
+async def remote(func):
+    await func(
+        Remote(
+            'http://hub.browserstack.com/wd/hub',
+            BasicAuth(
+                os.environ['USERNAME'],
+                os.environ['PASSWORD'],
+            )
+        ),
+        Tornado
+    )
+
 
 async def run():
-    app = build_app()
-    server = HTTPServer(app)
-    server.listen(0, '127.0.0.1')
-    port = list(server._sockets.values())[0].getsockname()[1]
-    try:
-        await run_selenium(port)
-    finally:
-        server.stop()
+    await gecko(get_example_h1_context_manager)
+    await gecko(get_example_h1_functional)
+    await remote(get_example_h1_context_manager)
+    await remote(get_example_h1_functional)
 
 
 def main():
-    loop = IOLoop.current()
-    loop.run_sync(run)
+    IOLoop.current().run_sync(run)
 
 
 if __name__ == '__main__':

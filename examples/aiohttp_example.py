@@ -1,44 +1,64 @@
+import os
 from asyncio import get_event_loop
 
-from aiohttp import web
-
-from arsenic.clients.aiohttp import AiohttpClient
-
-import base
-
-async def run_selenium(port):
-    print('Hello Aiohttp!' in await base.run_selenium(port, AiohttpClient))
+from arsenic.engines import BasicAuth
+from arsenic.engines.aiohttp import Aiohttp
+from arsenic.browsers import Firefox
+from arsenic.services import Geckodriver, Remote
 
 
-# Simple Aiohttp app
+async def get_example_h1_context_manager(service, engine):
+    async with service.run(engine) as driver:
+        async with driver.session(Firefox()) as session:
+            await session.get('http://example.com/')
+            element = await session.get_element('h1')
+            print(await element.get_text())
 
-async def index(request):
-    return web.Response(text='Hello Aiohttp!', content_type='text/plain')
 
-
-def build_app():
-    app = web.Application()
-    app.router.add_get('/', index)
-    return app
-
-async def run(loop):
-    app = build_app()
-    handler = app.make_handler()
-    server = await loop.create_server(handler, '127.0.0.1', 0)
-    port = server.sockets[0].getsockname()[1]
+async def get_example_h1_functional(service, engine):
+    driver = await service.start(engine)
     try:
-        await run_selenium(port)
+        session = await driver.new_session(Firefox())
+        try:
+            await session.get('http://example.com/')
+            element = await session.get_element('h1')
+            print(await element.get_text())
+        finally:
+            await session.close()
     finally:
-        server.close()
-        await server.wait_closed()
-        await app.shutdown()
-        await handler.shutdown(10)
-        await app.cleanup()
+        await driver.close()
+
+
+async def gecko(func):
+    await func(
+        Geckodriver(),
+        Aiohttp
+    )
+
+
+async def remote(func):
+    await func(
+        Remote(
+            'http://hub.browserstack.com/wd/hub',
+            BasicAuth(
+                os.environ['USERNAME'],
+                os.environ['PASSWORD'],
+            )
+        ),
+        Aiohttp
+    )
+
+
+async def run():
+    await gecko(get_example_h1_context_manager)
+    await gecko(get_example_h1_functional)
+    await remote(get_example_h1_context_manager)
+    await remote(get_example_h1_functional)
 
 
 def main():
-    loop = get_event_loop()
-    loop.run_until_complete(run(loop))
+
+    get_event_loop().run_until_complete(run())
 
 
 if __name__ == '__main__':

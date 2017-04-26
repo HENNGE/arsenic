@@ -1,11 +1,7 @@
-from aiohttp import web
-
-from arsenic import drivers
-from arsenic.clients.aiohttp import AiohttpClient
-
 import pytest
 
-from .utils import read
+from arsenic.engines.aiohttp import Aiohttp
+from tests.aiohttp_app import build_app
 
 pytestmark = pytest.mark.asyncio()
 
@@ -26,38 +22,19 @@ async def app_port(event_loop):
         await app.cleanup()
 
 
-async def index(request):
-    return web.Response(text='Hello Aiohttp!', content_type='text/plain')
+async def test_get_page_source(app_port, service):
+    async with service.driver.run(Aiohttp) as driver:
+        async with driver.session(service.browser) as session:
+            await session.get(f'http://127.0.0.1:{app_port}/')
+            assert 'Hello Aiohttp!' in await session.get_page_source()
 
 
-async def html(request):
-    return web.Response(text=read('simple.html'), content_type='text/html')
-
-
-async def form(request):
-    data = await request.post()
-    return web.Response(text=data['field'], content_type='text/plain')
-
-
-def build_app():
-    app = web.Application()
-    app.router.add_get('/', index)
-    app.router.add_get('/html/', html)
-    app.router.add_post('/form/', form)
-    return app
-
-
-async def test_get_page_source(app_port):
-    async with drivers.context(drivers.FirefoxDriver, AiohttpClient) as driver:
-        await driver.get(f'http://127.0.0.1:{app_port}/')
-        assert 'Hello Aiohttp!' in await driver.get_page_source()
-
-
-async def test_simple_form_submit(app_port):
-    async with drivers.context(drivers.FirefoxDriver, AiohttpClient) as driver:
-        await driver.get(f'http://127.0.0.1:{app_port}/html/')
-        field = await driver.find_element_by_css_selector('input[name="field"]')
-        await field.send_keys('sample input')
-        submit = await driver.find_element_by_css_selector('input[type="submit"]')
-        await submit.click()
-        assert 'sample input' in await driver.get_page_source()
+async def test_simple_form_submit(app_port, service):
+    async with service.driver.run(Aiohttp) as driver:
+        async with driver.session(service.browser) as session:
+            await session.get(f'http://127.0.0.1:{app_port}/html/')
+            field = await session.get_element('input[name="field"]')
+            await field.send_keys('sample input')
+            submit = await session.get_element('input[type="submit"]')
+            await submit.click()
+            assert 'sample input' in await session.get_page_source()
