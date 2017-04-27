@@ -1,6 +1,4 @@
 pytest
-pytest-tornado
-https://github.com/pytest-dev/pytest-asyncio/archive/master.zip
 pytest-timeout
 pytest-cov
 aiohttp

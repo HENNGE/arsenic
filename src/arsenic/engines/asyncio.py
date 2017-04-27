@@ -12,9 +12,14 @@ class ProcessContext:
 
     async def close(self):
         self.process.terminate()
-        handle = asyncio.get_event_loop().call_later(5, self.process.kill)
-        await self.process.wait()
-        handle.cancel()
+        try:
+            asyncio.wait_for(self.process.communicate(), 1)
+        except TimeoutError:
+            self.process.kill()
+        try:
+            asyncio.wait_for(self.process.communicate(), 1)
+        except TimeoutError:
+            pass
 
 
 async def start_process(cmd: List[str], env: Dict[str, str], log: TextIO) -> ProcessContext:

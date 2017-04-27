@@ -41,6 +41,12 @@ class Session:
             }
         )
 
+    async def get_url(self):
+        return await self.connection.request(
+            url='/url',
+            method='GET'
+        )
+
     async def get_page_source(self):
         return await self.connection.request(
             url='/source',

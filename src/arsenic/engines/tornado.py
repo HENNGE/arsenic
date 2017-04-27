@@ -54,10 +54,16 @@ class ProcessContext:
     async def close(self):
         self.process.proc.terminate()
         io_loop = IOLoop.current()
-        handle = io_loop.call_later(5, self.process.proc.kill)
+        def kill():
+            try:
+                self.process.proc.kill()
+            except ProcessLookupError:
+                pass
+        handle = io_loop.call_later(1, kill)
         await self.process.wait_for_exit(False)
         io_loop.remove_timeout(handle)
         self.process = None
+        Subprocess.uninitialize()
 
 
 async def init_session(auth=None):

@@ -7,9 +7,8 @@ jobs:
     steps:
       - checkout
       - run: python3.6 -mvenv /home/ubuntu/arsenic-env/
-      - run: /home/ubuntu/arsenic-env/bin/pip install -U setuptools pip wheel
-      - run: /home/ubuntu/arsenic-env/bin/pip install -e .
-      - run: /home/ubuntu/arsenic-env/bin/pip install -r tests/requirements.txt
+      - run: /home/ubuntu/arsenic-env/bin/pip install -U wheel setuptools pip
+      - run: /home/ubuntu/arsenic-env/bin/pip install /home/ubuntu/arsenic -r tests/requirements.txt
       - run: find . -regex '.*__pycache__.*' -delete
       - run: xvfb-run /home/ubuntu/arsenic-env/bin/pytest --verbose --cov=src/arsenic --cov-report=html:reports/coverage/ --junitxml=reports/results/junit.xml --timeout=60
       - store_artifacts:
