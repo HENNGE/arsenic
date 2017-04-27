@@ -1,7 +1,9 @@
 import json
+from json import JSONDecodeError
 
 import attr
 
+from arsenic import errors
 from arsenic.engines import Request, Response
 
 WEB_ELEMENT = 'element-6066-11e4-a52e-4f735466cecf'
@@ -37,11 +39,16 @@ class Connection:
             body=json.dumps(data) if data is not None else None
         )
         response: Response = await self.session.request(request)
-        if response.status != 200:
-            raise Exception(response.body)
-        data = json.loads(response.body)
-        if 'error' in data:
-            raise Exception(data['message'])
+        try:
+            data = json.loads(response.body)
+        except JSONDecodeError as exc:
+            data = {
+                'error': '!internal',
+                'message': str(exc)
+            }
+        if 'error' in data or response.status != 200:
+            error = errors.get(data['error'])
+            raise error(data['message'])
         if raw:
             return data
         if data:

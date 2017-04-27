@@ -1,4 +1,7 @@
 import attr
+import time
+
+from arsenic.errors import ArsenicError
 
 
 @attr.s
@@ -31,13 +34,14 @@ class Element:
 @attr.s
 class Session:
     connection = attr.ib()
+    bind = attr.ib(default='')
 
     async def get(self, url: str):
         await self.connection.request(
             url='/url',
             method='POST',
             data={
-                'url': url
+                'url': self.bind + url
             }
         )
 
@@ -75,10 +79,11 @@ class Session:
 class SessionContext:
     driver = attr.ib()
     browser = attr.ib()
+    bind = attr.ib()
     session = attr.ib(default=None)
 
     async def __aenter__(self):
-        self.session = await self.driver.new_session(self.browser)
+        self.session = await self.driver.new_session(self.browser, self.bind)
         return self.session
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
@@ -92,10 +97,10 @@ class WebDriver:
     connection = attr.ib()
     closers = attr.ib()
 
-    def session(self, browser):
-        return SessionContext(self, browser)
+    def session(self, browser, bind=''):
+        return SessionContext(self, browser, bind)
 
-    async def new_session(self, browser) -> Session:
+    async def new_session(self, browser, bind='') -> Session:
         response = await self.connection.request(
             url='/session',
             method='POST',
@@ -107,8 +112,20 @@ class WebDriver:
         if 'sessionId' not in response:
             response = response['value']
         session_id = response['sessionId']
-        return Session(self.connection.prefixed(f'/session/{session_id}'))
+        return Session(self.connection.prefixed(f'/session/{session_id}'), bind)
 
     async def close(self):
         for closer in reversed(self.closers):
             await closer()
+
+    async def wait(self, timeout, func, *args, **kwargs):
+        deadline = time.time() + timeout
+        err = None
+        while deadline > time.time():
+            try:
+                return await func(*args, **kwargs)
+            except ArsenicError as exc:
+                err = exc
+                await self.engine.sleep(0.2)
+        if err is not None:
+            raise err

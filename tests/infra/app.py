@@ -1,12 +1,23 @@
+import os
 from asyncio import get_event_loop
 from functools import wraps
 
 import attr
+from jinja2 import Environment, FileSystemLoader
 from aiohttp import web as aiohttp_web
 from tornado import web as tornado_web
 from tornado.httpserver import HTTPServer
 
-from tests.infra.utils import read
+
+JinjaEnv = Environment(
+    loader=FileSystemLoader(
+        os.path.join(os.path.dirname(__file__), 'templates')
+    )
+)
+
+
+def render(template, **context):
+    return JinjaEnv.get_template(template).render(**context)
 
 
 @attr.s
@@ -34,11 +45,11 @@ async def index(request):
 
 
 async def html(request):
-    return read('simple.html')
+    return render('simple.html')
 
 
 async def form(request):
-    return read('formdata.html').format(value=request.form['field'])
+    return render('formdata.html', value=request.form['field'])
 
 
 ROUTES = [
@@ -73,7 +84,7 @@ def tornado_adapter(handler):
         async def handle(self, method):
             params = self.request.query_arguments
             form = None if method == 'GET' else {
-                key: values[0]
+                key: values[0].decode('utf-8')
                 for key, values in self.request.body_arguments.items()
             }
             response = await handler(SimpleRequest(method, params, form))
