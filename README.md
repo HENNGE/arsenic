@@ -1,6 +1,6 @@
 # Async Webdriver
 
-[![CircleCI](https://circleci.com/gh/ojii/arsenic/tree/no-selenium.svg?style=svg)](https://circleci.com/gh/ojii/arsenic/tree/no-selenium)
+[![CircleCI](https://circleci.com/gh/ojii/arsenic/tree/master.svg?style=svg)](https://circleci.com/gh/ojii/arsenic/tree/master)
 
 Asynchronous, framework-independent webdriver client.
 
