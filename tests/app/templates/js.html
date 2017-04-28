@@ -1,0 +1,19 @@
+<html>
+<head>
+  <title>The Title</title>
+  <style>
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="secret" class="hidden">Secret</div>
+  <button id="button">Click me</button>
+  <script>
+    document.getElementById('button').addEventListener(function() {
+      document.getElementsById('secret').removeAttribute('class');
+    });
+  </script>
+</body>
+</html>

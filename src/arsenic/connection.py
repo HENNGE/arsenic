@@ -46,9 +46,7 @@ class Connection:
                 'error': '!internal',
                 'message': str(exc)
             }
-        if 'error' in data or response.status != 200:
-            error = errors.get(data.get('error', '!unkown'))
-            raise error(data.get('message', data))
+        errors.check_response(data)
         if raw:
             return data
         if data:

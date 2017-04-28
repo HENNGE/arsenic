@@ -18,9 +18,14 @@ def form():
     return render_template('data.html', value=request.form['field'])
 
 
-@app.route('/name/<name>/')
-def name(name):
-    return render_template('name.html', name=name)
+@app.route('/js/')
+def name():
+    return render_template('js.html', name=name)
+
+
+@app.route('/cookie/')
+def cookie():
+    return render_template('data.html', value=request.cookies.get('test', ''))
 
 
 if __name__ == "__main__":

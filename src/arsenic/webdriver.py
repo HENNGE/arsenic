@@ -4,6 +4,9 @@ import time
 from arsenic.errors import ArsenicError
 
 
+UNSET = object()
+
+
 @attr.s
 class Element:
     connection = attr.ib()
@@ -28,6 +31,12 @@ class Element:
         await self.connection.request(
             url='/click',
             method='POST'
+        )
+
+    async def is_displayed(self):
+        return await self.connection.request(
+            url='/displayed',
+            method='GET'
         )
 
 
@@ -67,6 +76,61 @@ class Session:
             }
         )
         return Element(self.connection.prefixed(f'/element/{element_id}'))
+
+    async def add_cookie(self, name, value, *, path=UNSET, domain=UNSET, secure=UNSET, expiry=UNSET):
+        cookie = {
+            'name': name,
+            'value': value
+        }
+        if path is not UNSET:
+            cookie['path'] = path
+        if domain is not UNSET:
+            cookie['domain'] = domain
+        if secure is not UNSET:
+            cookie['secure'] = secure
+        if expiry is not UNSET:
+            cookie['expiry'] = expiry
+        await self.connection.request(
+            url='/cookie',
+            method='POST',
+            data={
+                'cookie': cookie
+            }
+        )
+
+    async def get_cookie(self, name):
+        return await self.connection.request(
+            url=f'/cookie/{name}',
+            method='GET'
+        )
+
+    async def get_all_cookies(self):
+        return await self.connection.request(
+            url='/cookie',
+            method='GET'
+        )
+
+    async def delete_cookie(self, name):
+        await self.connection.request(
+            url=f'/cookie/{name}',
+            method='DELETE'
+        )
+
+    async def delete_all_cookies(self):
+        await self.connection.request(
+            url='/cookie',
+            method='DELETE'
+        )
+
+    async def execute_script(self, script, *args):
+        return await self.connection.request(
+            url='/execute/sync',
+            method='POST',
+            data={
+                'script': script,
+                'args': list(args)
+            }
+        )
 
     async def close(self):
         await self.connection.request(
@@ -123,7 +187,11 @@ class WebDriver:
         err = None
         while deadline > time.time():
             try:
-                return await func(*args, **kwargs)
+                result = await func(*args, **kwargs)
+                if result:
+                    return result
+                else:
+                    await self.engine.sleep(0.2)
             except ArsenicError as exc:
                 err = exc
                 await self.engine.sleep(0.2)
