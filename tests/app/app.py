@@ -18,5 +18,10 @@ def form():
     return render_template('data.html', value=request.form['field'])
 
 
+@app.route('/name/<name>/')
+def name(name):
+    return render_template('name.html', name=name)
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", debug=True)

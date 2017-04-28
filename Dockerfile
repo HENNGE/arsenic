@@ -10,4 +10,6 @@ RUN test-env/bin/pip install -U pip setuptools wheel
 
 RUN test-env/bin/pip install . -r tests/requirements.txt
 
-CMD ["test-env/bin/pytest", "--verbose"]
+RUN find . -regex '.*__pycache__.*' -delete
+
+CMD xvfb-run test-env/bin/pytest --verbose
