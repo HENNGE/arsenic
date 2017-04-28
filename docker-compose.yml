@@ -1,0 +1,13 @@
+version: '2'
+services:
+  webapp:
+    build: tests/app
+  firefox:
+    image: selenium/standalone-firefox
+    depends_on:
+      - "webapp"
+  test:
+    build: .
+    depends_on:
+      - "webapp"
+      - "firefox"

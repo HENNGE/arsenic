@@ -3,4 +3,3 @@ pytest-timeout
 pytest-cov
 aiohttp
 tornado
-jinja2

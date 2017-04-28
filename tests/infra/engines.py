@@ -3,11 +3,9 @@ from functools import partial
 
 import attr
 from tornado.ioloop import IOLoop
-from tornado.process import Subprocess
 
 from arsenic.engines.aiohttp import Aiohttp
 from arsenic.engines.tornado import Tornado
-from tests.infra.app import start_aiohttp_app, start_tornado_app
 
 
 @attr.s
@@ -58,7 +56,6 @@ def start_tornado_loop():
 @attr.s
 class EngineContext:
     start_loop = attr.ib()
-    start_app = attr.ib()
     engine = attr.ib()
     name = attr.ib()
 
@@ -66,13 +63,11 @@ class EngineContext:
 ENGINE_CONTEXTS = [
     EngineContext(
         start_loop=start_aiohttp_loop,
-        start_app=start_aiohttp_app,
         engine=Aiohttp,
         name='aiohttp'
     ),
     EngineContext(
         start_loop=start_tornado_loop,
-        start_app=start_tornado_app,
         engine=Tornado,
         name='tornado'
     )

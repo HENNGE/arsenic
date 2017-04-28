@@ -1,7 +1,7 @@
 import attr
 
 from arsenic.browsers import Firefox
-from arsenic.services import Geckodriver
+from arsenic.services import Geckodriver, Remote
 
 
 @attr.s
@@ -17,4 +17,9 @@ SERVICE_CONTEXTS = [
         browser=Firefox(),
         name='geckofirefox'
     ),
+    ServiceContext(
+        driver=Remote('http://firefox:4444/wd/hub'),
+        browser=Firefox(),
+        name='remotefirefox'
+    )
 ]

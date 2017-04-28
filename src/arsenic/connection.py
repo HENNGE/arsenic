@@ -47,8 +47,8 @@ class Connection:
                 'message': str(exc)
             }
         if 'error' in data or response.status != 200:
-            error = errors.get(data['error'])
-            raise error(data['message'])
+            error = errors.get(data.get('error', '!unkown'))
+            raise error(data.get('message', data))
         if raw:
             return data
         if data:

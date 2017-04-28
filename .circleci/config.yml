@@ -2,17 +2,10 @@ version: 2
 jobs:
   build:
     docker:
-      - image: ojii/arsenic-test
-    working_directory: /home/ubuntu/arsenic
+      - image: docker/compose:1.9.0
+    working_directory: /home/
     steps:
+      - setup_remote_docker
       - checkout
-      - run: python3.6 -mvenv /home/ubuntu/arsenic-env/
-      - run: /home/ubuntu/arsenic-env/bin/pip install -U wheel setuptools pip
-      - run: /home/ubuntu/arsenic-env/bin/pip install /home/ubuntu/arsenic -r tests/requirements.txt
-      - run: find . -regex '.*__pycache__.*' -delete
-      - run: xvfb-run /home/ubuntu/arsenic-env/bin/pytest --verbose --cov=src/arsenic --cov-report=html:reports/coverage/ --junitxml=reports/results/junit.xml --timeout=60
-      - store_artifacts:
-          path: reports/coverage/
-          destination: reports
-      - store_test_results:
-          path: reports/results/
+      - run: docker-compose build
+      - run: docker-compose run --rm test
