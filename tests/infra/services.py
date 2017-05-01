@@ -49,7 +49,7 @@ def get_remote_drivers(remotes):
             yield ServiceContext(
                 driver=Remote(unparsed),
                 browser=browser(**query),
-                name=f'remote{browsername}'
+                name=f'remote{browser_name}'
             )
 
 

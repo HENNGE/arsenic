@@ -1,8 +1,3 @@
-import pytest
-
-from arsenic.errors import ArsenicError
-
-
 async def test_get_page_source(context):
     async with context.driver.run(context.engine) as driver:
         async with driver.session(context.browser, context.base_url) as session:
