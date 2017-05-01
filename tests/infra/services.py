@@ -1,7 +1,15 @@
+import os
+from urllib.parse import urlparse, parse_qsl, urlunparse
+
 import attr
 
 from arsenic.browsers import Firefox
 from arsenic.services import Geckodriver, Remote
+
+
+BROWSERS = {
+    'firefox': Firefox,
+}
 
 
 @attr.s
@@ -17,9 +25,33 @@ SERVICE_CONTEXTS = [
         browser=Firefox(),
         name='geckofirefox'
     ),
-    ServiceContext(
-        driver=Remote('http://firefox:4444/wd/hub'),
-        browser=Firefox(),
-        name='remotefirefox'
-    )
 ]
+
+
+def get_remote_drivers(remotes):
+    for remote in remotes.split(' '):
+        parsed = urlparse(remote)
+        query = dict(parse_qsl(parsed.query))
+        browser_name = query.pop('browser', None)
+        browser = BROWSERS.get(browser_name, None)
+        if browser is not None:
+            unparsed = urlunparse((
+                parsed.scheme,
+                parsed.netloc,
+                parsed.path,
+                '',
+                '',
+                ''
+            ))
+            yield ServiceContext(
+                driver=Remote(unparsed),
+                browser=browser(**query),
+                name=f'remote{browsername}'
+            )
+
+
+remotes = os.environ.get('REMOTE_WEBDRIVERS', None)
+
+
+if remotes is not None:
+    SERVICE_CONTEXTS.extend(get_remote_drivers(remotes))

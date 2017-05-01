@@ -27,7 +27,7 @@ async def test_displayed(context):
         async with driver.session(context.browser, context.base_url) as session:
             await session.get('/js/')
             button = await driver.wait(5, session.get_element, 'button')
-            div = await driver.wait(5, session.get_element, 'div')
+            div = await driver.wait(5, session.get_element, '#secret')
             assert not await div.is_displayed()
             await button.click()
             assert await driver.wait(5, div.is_displayed)
@@ -39,7 +39,7 @@ async def test_execute_script(context):
             await session.get('/js/')
             div = await driver.wait(5, session.get_element, 'div')
             assert not await div.is_displayed()
-            await session.execute_script('document.getElementById("div").removeAttribute("class");')
+            await session.execute_script('document.getElementById("secret").removeAttribute("class");')
             assert await driver.wait(5, div.is_displayed)
 
 
@@ -51,7 +51,7 @@ async def test_cookies(context):
             await session.get('/cookie/')
             h2 = await driver.wait(5, session.get_element, 'h2')
             assert '' == await h2.get_text()
-            await session.add_cookie('test', 'value', path='/')
+            await session.add_cookie('test', 'value')
             await session.get('/cookie/')
             h2 = await driver.wait(5, session.get_element, 'h2')
             assert 'value' == await h2.get_text()

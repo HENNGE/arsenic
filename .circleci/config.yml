@@ -8,4 +8,4 @@ jobs:
       - setup_remote_docker
       - checkout
       - run: docker-compose build
-      - run: docker-compose run --rm test
+      - run: docker-compose run -e WEB_APP_BASE_URL=http://webapp:5000 -e REMOTE_WEBDRIVERS=http://firefox:4444/wd/hub?browser=firefox --rm test

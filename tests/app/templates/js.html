@@ -11,8 +11,8 @@
   <div id="secret" class="hidden">Secret</div>
   <button id="button">Click me</button>
   <script>
-    document.getElementById('button').addEventListener(function() {
-      document.getElementsById('secret').removeAttribute('class');
+    document.getElementById('button').addEventListener('click', function() {
+      document.getElementById('secret').removeAttribute('class');
     });
   </script>
 </body>
