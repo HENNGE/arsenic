@@ -2,6 +2,7 @@ import os
 from urllib.parse import urlparse, parse_qsl, urlunparse
 
 import attr
+import shutil
 
 from arsenic.browsers import Firefox
 from arsenic.services import Geckodriver, Remote
@@ -19,13 +20,15 @@ class ServiceContext:
     name = attr.ib()
 
 
-SERVICE_CONTEXTS = [
-    ServiceContext(
+SERVICE_CONTEXTS = []
+
+
+if shutil.which('geckodriver'):
+    SERVICE_CONTEXTS.append(ServiceContext(
         driver=Geckodriver(),
         browser=Firefox(),
         name='geckofirefox'
-    ),
-]
+    ))
 
 
 def get_remote_drivers(remotes):

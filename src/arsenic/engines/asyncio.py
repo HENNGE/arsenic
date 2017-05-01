@@ -1,6 +1,6 @@
 import asyncio
 import os
-from asyncio.subprocess import Process, DEVNULL
+from asyncio.subprocess import DEVNULL
 from typing import TextIO, Dict, List
 
 import attr
@@ -13,12 +13,12 @@ class ProcessContext:
     async def close(self):
         self.process.terminate()
         try:
-            asyncio.wait_for(self.process.communicate(), 1)
-        except TimeoutError:
+            await asyncio.wait_for(self.process.communicate(), 1)
+        except asyncio.futures.TimeoutError:
             self.process.kill()
         try:
-            asyncio.wait_for(self.process.communicate(), 1)
-        except TimeoutError:
+            await asyncio.wait_for(self.process.communicate(), 1)
+        except asyncio.futures.TimeoutError:
             pass
 
 

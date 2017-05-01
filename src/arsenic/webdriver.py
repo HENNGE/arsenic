@@ -1,6 +1,7 @@
 import attr
 import time
 
+from arsenic.connection import Connection
 from arsenic.errors import ArsenicError
 
 
@@ -42,8 +43,8 @@ class Element:
 
 @attr.s
 class Session:
-    connection = attr.ib()
-    bind = attr.ib(default='')
+    connection: Connection = attr.ib()
+    bind: str = attr.ib(default='')
 
     async def get(self, url: str):
         await self.connection.request(

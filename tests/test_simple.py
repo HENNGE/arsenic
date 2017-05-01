@@ -46,8 +46,6 @@ async def test_execute_script(context):
 async def test_cookies(context):
     async with context.driver.run(context.engine) as driver:
         async with driver.session(context.browser, context.base_url) as session:
-            with pytest.raises(ArsenicError):
-                await session.add_cookie('test', 'value', path='/')
             await session.get('/cookie/')
             h2 = await driver.wait(5, session.get_element, 'h2')
             assert '' == await h2.get_text()
@@ -58,4 +56,4 @@ async def test_cookies(context):
             await session.delete_cookie('test')
             await session.get('/cookie/')
             h2 = await driver.wait(5, session.get_element, 'h2')
-            assert 'value' == await h2.get_text()
+            assert '' == await h2.get_text()

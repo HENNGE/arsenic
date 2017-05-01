@@ -7,7 +7,8 @@ setup(
     package_dir={'': 'src'},
     packages=find_packages(where='src'),
     install_requires=[
-        'attrs'
+        'attrs',
+        'structlog',
     ],
     extras_require={
         'aiohttp': [

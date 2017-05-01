@@ -2,11 +2,15 @@ import json
 from json import JSONDecodeError
 
 import attr
+from structlog import get_logger
 
 from arsenic import errors
 from arsenic.engines import Request, Response
 
 WEB_ELEMENT = 'element-6066-11e4-a52e-4f735466cecf'
+
+
+log = get_logger()
 
 
 def unwrap(value):
@@ -38,7 +42,9 @@ class Connection:
             method=method,
             body=json.dumps(data) if data is not None else None
         )
+        log.info('request', request=request)
         response: Response = await self.session.request(request)
+        log.info('response', request=request, response=response)
         try:
             data = json.loads(response.body)
         except JSONDecodeError as exc:
