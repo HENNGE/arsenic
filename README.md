@@ -53,3 +53,11 @@ async def example():
             # print the text of the h1 element
             print(await h1.get_text())
 ```
+
+## Testing
+
+To run the tests, install circleci local and run `circleci build`.
+
+Alternatively you can run the app in `tests/app/` manually, set
+the `WEB_APP_BASE_URL` environment variable to the URL at which the
+app is running and execute `pytest`.
