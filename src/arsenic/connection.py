@@ -1,4 +1,6 @@
+import base64
 import json
+from io import BytesIO
 from json import JSONDecodeError
 
 import attr
@@ -27,6 +29,11 @@ def unwrap(value):
         return value
 
 
+def wrap_screen(data):
+    if isinstance(data, dict) and 'value' in data and isinstance(data['value'], dict) and 'screen' in data['value']:
+        data['value']['screen'] = BytesIO(base64.b64decode(data['value']['screen']))
+
+
 @attr.s
 class Connection:
     session = attr.ib()
@@ -52,6 +59,7 @@ class Connection:
                 'error': '!internal',
                 'message': str(exc)
             }
+        wrap_screen(data)
         errors.check_response(data)
         if raw:
             return data
