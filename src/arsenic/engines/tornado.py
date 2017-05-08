@@ -1,6 +1,6 @@
 import os
 from subprocess import DEVNULL
-from typing import TextIO, Dict, List
+from typing import TextIO, Dict, List, Optional
 
 import attr
 from tornado.gen import sleep
@@ -8,17 +8,20 @@ from tornado.httpclient import AsyncHTTPClient, HTTPRequest, HTTPError
 from tornado.ioloop import IOLoop
 from tornado.process import Subprocess
 
-from arsenic.engines import Request, Response, Engine, Headers
+from arsenic.engines import (
+    Request, Response, Engine, Headers, HTTPSession,
+    Auth,
+)
 
 
 def convert(headers):
     return Headers(dict(headers.get_all()))
 
 
-@attr.s
-class Session:
-    client = attr.ib()
-    auth = attr.ib(default=None)
+class Session(HTTPSession):
+    def __init__(self, client: AsyncHTTPClient, auth: Optional[Auth]=None):
+        self.client = client
+        self.auth = auth
 
     async def request(self, request: Request) -> Response:
         headers = {**request.headers}
@@ -35,7 +38,7 @@ class Session:
             return Response(
                 status=exc.code,
                 body=exc.response.body if exc.response else exc.message,
-                headers=convert(exc.response.headers) if exc.response else Headers()
+                headers=convert(exc.response.headers) if exc.response else Headers(),
             )
         return Response(
             status=response.code,

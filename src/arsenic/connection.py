@@ -3,11 +3,11 @@ import json
 from io import BytesIO
 from json import JSONDecodeError
 
-import attr
 from structlog import get_logger
 
 from arsenic import errors
-from arsenic.engines import Request, Response
+from arsenic.engines import Request, Response, HTTPSession
+
 
 WEB_ELEMENT = 'element-6066-11e4-a52e-4f735466cecf'
 
@@ -34,10 +34,10 @@ def wrap_screen(data):
         data['value']['screen'] = BytesIO(base64.b64decode(data['value']['screen']))
 
 
-@attr.s
 class Connection:
-    session = attr.ib()
-    prefix: str = attr.ib()
+    def __init__(self, session: HTTPSession, prefix: str):
+        self.session = session
+        self.prefix = prefix
 
     async def request(self, *, url: str, method: str, data=None, raw=False):
         if data is None:
@@ -51,16 +51,17 @@ class Connection:
         )
         log.info('request', request=request)
         response: Response = await self.session.request(request)
-        log.info('response', request=request, response=response)
         try:
             data = json.loads(response.body)
         except JSONDecodeError as exc:
             data = {
                 'error': '!internal',
-                'message': str(exc)
+                'message': str(exc),
+                'stacktrace': ''
             }
         wrap_screen(data)
-        errors.check_response(data)
+        log.info('response', request=request, response=response, data=data)
+        errors.check_response(response.status, data)
         if raw:
             return data
         if data:

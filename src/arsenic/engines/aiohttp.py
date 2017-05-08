@@ -1,16 +1,16 @@
 from asyncio import sleep
+from typing import Optional
 
-import attr
 from aiohttp.client import ClientSession
 
-from . import Engine, Request, Response, Headers
+from . import Engine, Request, Response, Headers, HTTPSession, Auth
 from .asyncio import start_process
 
 
-@attr.s
-class Session:
-    client = attr.ib()
-    auth = attr.ib(default=None)
+class Session(HTTPSession):
+    def __init__(self, client: ClientSession, auth: Optional[Auth]=None):
+        self.client = client
+        self.auth = auth
 
     async def request(self, request: Request) -> Response:
         headers = {

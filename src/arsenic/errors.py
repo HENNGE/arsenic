@@ -1,13 +1,26 @@
+from structlog import get_logger
+
+log = get_logger()
+
+
 class ArsenicError(Exception):
     pass
 
 
-class UnknownArsenicError(ArsenicError):
+class WebdriverError(ArsenicError):
     def __init__(self, message, screen, stacktrace):
         self.message = message
         self.screen = screen
         self.stacktrace = stacktrace
         super().__init__(message)
+
+
+class UnknownArsenicError(ArsenicError):
+    pass
+
+
+class ArsenicTimeout(ArsenicError):
+    pass
 
 
 CODES = {}
@@ -19,10 +32,10 @@ def get(error_code):
 
 def create(error_name, *error_codes):
     name = ''.join(bit.capitalize() for bit in error_name.split(' '))
-    cls = type(name, (ArsenicError,), {})
+    cls = type(name, (WebdriverError,), {})
     CODES[error_name] = cls
     for code in error_codes:
-        CODES[error_name] = cls
+        CODES[code] = cls
     return cls
 
 
@@ -54,63 +67,21 @@ def _value_or_default(obj, key, default):
     return obj[key] if key in obj else default
 
 
-def check_response(data):
-    status = data.get('status', None)
-    if status is None or status == 0:
-        return
+def check_response(status, data):
+    if status >= 400:
+        error = None
+        if 'error' in data:
+            error = data['error']
+        elif 'state' in data:
+            error = data['state']
 
-    value = None
-    message = data.get("message", "")
-    screen = data.get("screen", "")
-    stacktrace = None
-    if isinstance(status, int):
-        value_json = data.get('value', None)
-        if value_json and isinstance(value_json, str):
-            import json
-            try:
-                value = json.loads(value_json)
-                if len(value.keys()) == 1:
-                    value = value['value']
-                status = value.get('error', None)
-                if status is None:
-                    status = value["status"]
-                    message = value["value"]
-                    if not isinstance(message, str):
-                        value = message
-                        message = message.get('message')
-                else:
-                    message = value.get('message', None)
-            except ValueError:
-                pass
-
-    exception_class = get(status)
-    if value == '' or value is None:
-        value = data['value']
-    if isinstance(value, str):
-        if exception_class is ArsenicError:
-            raise exception_class(data, value)
-        raise exception_class(value)
-    if message == "" and 'message' in value:
-        message = value['message']
-
-    screen = None
-    if 'screen' in value:
-        screen = value['screen']
-
-    stacktrace = None
-    if 'stackTrace' in value and value['stackTrace']:
-        stacktrace = []
-        try:
-            for frame in value['stackTrace']:
-                line = frame.get('lineNumber', '')
-                file = frame.get('fileName', '<anonymous>')
-                if line:
-                    file = f"{file}:{line}"
-                meth = frame.get('methodName', '<anonymous>')
-                if 'className' in frame:
-                    meth = f"{frame['className']}.{meth}"
-                msg = f"    at {meth} ({file})"
-                stacktrace.append(msg)
-        except TypeError:
-            pass
-    raise exception_class(message, screen, stacktrace)
+        if 'value' in data:
+            data = data['value']
+        if error is None and 'error' in data:
+            error = data['error']
+        message = data.get('message', None)
+        stacktrace = data.get('stacktrace', None)
+        screen = data.get('screen', None)
+        exception_class = get(error)
+        log.error('error', type=exception_class, message=message, stacktrace=stacktrace, data=data, status=status)
+        raise exception_class(message, screen, stacktrace)

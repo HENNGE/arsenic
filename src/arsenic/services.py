@@ -9,9 +9,18 @@ from arsenic.utils import free_port
 from arsenic.webdriver import WebDriver
 
 
+class Service(metaclass=abc.ABCMeta):
+    @abc.abstractmethod
+    async def start(self, engine):
+        raise NotImplementedError()
+
+    def run(self, engine):
+        return ServiceContext(self, engine)
+
+
 @attr.s
 class ServiceContext:
-    service = attr.ib()
+    service: Service = attr.ib()
     engine = attr.ib()
     driver = attr.ib(default=None)
 
@@ -22,15 +31,6 @@ class ServiceContext:
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         await self.driver.close()
         self.driver = None
-
-
-class Service(metaclass=abc.ABCMeta):
-    @abc.abstractmethod
-    async def start(self, engine):
-        raise NotImplementedError()
-
-    def run(self, engine):
-        return ServiceContext(self, engine)
 
 
 @attr.s

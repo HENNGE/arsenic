@@ -1,16 +1,19 @@
-import attr
+from functools import partial
+from typing import Awaitable, Callable, List, Any, Sequence, Optional, Union
+
 import time
 
+from arsenic.browsers import Browser
 from arsenic.connection import Connection
-from arsenic.errors import ArsenicError
-
+from arsenic.engines import Engine
+from arsenic.errors import ArsenicError, ArsenicTimeout, NoSuchElement
 
 UNSET = object()
 
 
-@attr.s
 class Element:
-    connection = attr.ib()
+    def __init__(self, connection: Connection):
+        self.connection = connection
 
     async def get_text(self):
         return await self.connection.request(
@@ -41,10 +44,15 @@ class Element:
         )
 
 
-@attr.s
+TCallback = Callable[..., Awaitable[Any]]
+TWaiter = Callable[[int, TCallback], Awaitable[Any]]
+
+
 class Session:
-    connection: Connection = attr.ib()
-    bind: str = attr.ib(default='')
+    def __init__(self, connection: Connection, wait=TWaiter, bind: str=''):
+        self.connection = connection
+        self.bind = bind
+        self.wait = wait
 
     async def get(self, url: str):
         await self.connection.request(
@@ -77,6 +85,23 @@ class Session:
             }
         )
         return Element(self.connection.prefixed(f'/element/{element_id}'))
+
+    async def wait_for_element(self, timeout: int, selector: str) -> Element:
+        return await self.wait(
+            timeout,
+            partial(self.get_element, selector),
+            NoSuchElement
+        )
+
+    async def wait_for_element_gone(self, timeout: int, selector: str):
+        async def callback():
+            try:
+                await self.get_element(selector)
+            except NoSuchElement:
+                return True
+            else:
+                return False
+        return await self.wait(timeout, callback)
 
     async def add_cookie(self, name, value, *, path=UNSET, domain=UNSET, secure=UNSET, expiry=UNSET):
         cookie = {
@@ -140,14 +165,14 @@ class Session:
         )
 
 
-@attr.s
 class SessionContext:
-    driver = attr.ib()
-    browser = attr.ib()
-    bind = attr.ib()
-    session = attr.ib(default=None)
+    def __init__(self, driver: 'WebDriver', browser: Browser, bind: str):
+        self.driver = driver
+        self.browser = browser
+        self.bind = bind
+        self.session: Session = None
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> Session:
         self.session = await self.driver.new_session(self.browser, self.bind)
         return self.session
 
@@ -156,16 +181,19 @@ class SessionContext:
         self.session = None
 
 
-@attr.s
-class WebDriver:
-    engine = attr.ib()
-    connection = attr.ib()
-    closers = attr.ib()
+TClosers = List[Callable[..., Awaitable[None]]]
 
-    def session(self, browser, bind=''):
+
+class WebDriver:
+    def __init__(self, engine: Engine, connection: Connection, closers: TClosers):
+        self.engine = engine
+        self.connection = connection
+        self.closers = closers
+
+    def session(self, browser: Browser, bind='') -> SessionContext:
         return SessionContext(self, browser, bind)
 
-    async def new_session(self, browser, bind='') -> Session:
+    async def new_session(self, browser: Browser, bind='') -> Session:
         response = await self.connection.request(
             url='/session',
             method='POST',
@@ -177,24 +205,30 @@ class WebDriver:
         if 'sessionId' not in response:
             response = response['value']
         session_id = response['sessionId']
-        return Session(self.connection.prefixed(f'/session/{session_id}'), bind)
+        return Session(
+            connection=self.connection.prefixed(f'/session/{session_id}'),
+            bind=bind,
+            wait=self.wait,
+        )
 
     async def close(self):
         for closer in reversed(self.closers):
             await closer()
 
-    async def wait(self, timeout, func, *args, **kwargs):
+    async def wait(self,
+                   timeout: Union[float, int],
+                   func: Callable[[], Awaitable[Any]],
+                   *exceptions: Exception) -> Any:
         deadline = time.time() + timeout
         err = None
         while deadline > time.time():
             try:
-                result = await func(*args, **kwargs)
+                result = await func()
                 if result:
                     return result
                 else:
                     await self.engine.sleep(0.2)
-            except ArsenicError as exc:
+            except exceptions as exc:
                 err = exc
                 await self.engine.sleep(0.2)
-        if err is not None:
-            raise err
+        raise ArsenicTimeout() from err

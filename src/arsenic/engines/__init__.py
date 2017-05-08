@@ -1,3 +1,4 @@
+import abc
 import base64
 from typing import Dict, TypeVar, Union, Optional
 
@@ -30,19 +31,31 @@ class Request:
 @attr.s
 class Response:
     status: int = attr.ib()
-    body: bytes = attr.ib()
     headers: Headers = attr.ib()
+    body: bytes = attr.ib(repr=False)
+
+
+class HTTPSession(metaclass=abc.ABCMeta):
+    @abc.abstractmethod
+    async def request(self, request: Request) -> Response:
+        raise NotImplementedError()
 
 
 @attr.s
 class Engine:
-    http_session= attr.ib()
+    http_session: HTTPSession = attr.ib()
     start_process = attr.ib()
     sleep = attr.ib()
 
 
+class Auth(metaclass=abc.ABCMeta):
+    @abc.abstractmethod
+    def get_headers(self) -> Dict[str, str]:
+        raise NotImplementedError()
+
+
 @attr.s
-class BasicAuth:
+class BasicAuth(Auth):
     username = attr.ib()
     password = attr.ib()
 
