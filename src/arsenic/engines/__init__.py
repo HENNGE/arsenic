@@ -40,6 +40,10 @@ class HTTPSession(metaclass=abc.ABCMeta):
     async def request(self, request: Request) -> Response:
         raise NotImplementedError()
 
+    @abc.abstractmethod
+    async def close(self):
+        raise NotImplementedError()
+
 
 @attr.s
 class Engine:
