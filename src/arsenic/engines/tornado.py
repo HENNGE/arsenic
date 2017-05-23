@@ -70,7 +70,7 @@ class ProcessContext:
 
 
 async def init_session(auth=None):
-    return Session(AsyncHTTPClient(), auth)
+    return Session(AsyncHTTPClient(force_instance=True), auth)
 
 
 async def start_process(cmd: List[str], env: Dict[str, str], log: TextIO) -> ProcessContext:
