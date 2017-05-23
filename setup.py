@@ -18,9 +18,6 @@ setup(
         'tornado': [
             'tornado>=4.5'
         ],
-        'twisted': [
-            'twisted>=17'
-        ]
     },
     classifiers=[
         'Development Status :: 3 - Alpha',
