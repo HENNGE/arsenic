@@ -10,6 +10,7 @@ setup(
         'attrs',
         'structlog',
     ],
+    license='APLv2',
     extras_require={
         'aiohttp': [
             'aiohttp>=2'
@@ -21,4 +22,10 @@ setup(
             'twisted>=17'
         ]
     },
+    classifiers=[
+        'Development Status :: 3 - Alpha',
+        'License :: OSI Approved :: Apache Software License',
+        'Programming Language :: Python :: 3 :: Only',
+        'Programming Language :: Python :: 3.6'
+    ]
 )
