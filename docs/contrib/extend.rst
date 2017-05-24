@@ -96,6 +96,9 @@ the :py:meth:`arsenic.service.Service.start` coroutine method. This method
 takes an instance of an :py:class:`arsenic.engines.Engine` as argument and must
 return an instance of :py:class:`arsenic.webdriver.WebDriver`.
 
+If your service uses a local subprocess, the :py:func:`arsenic.service.subprocess_based_service`
+helper might be useful.
+
 Browser
 *******
 
@@ -106,3 +109,7 @@ For convenience there is a :py:class:`arsenic.browsers.Browser` class you can
 subclass and set the :py:attr:`arsenic.browsers.Browser.defaults` to a JSON
 serializable dictionary of default values. The class can be passed a dictionary
 of values to override when instantiated.
+
+If your :ref:`Browser` does not support the web driver protocol, you can chose a
+different :py:class:`arsenic.session.Session` class using the
+:py:attr:`arsenic.browsers.Browser.session_class` attribute.

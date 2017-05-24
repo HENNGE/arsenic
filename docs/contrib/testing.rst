@@ -15,6 +15,4 @@ Manual
 3. Run ``WEB_APP_BASE_URL=http://localhost:5000 pytest`` in the root directory.
 
 
-
-
 .. _circleci local: https://circleci.com/docs/2.0/local-jobs/

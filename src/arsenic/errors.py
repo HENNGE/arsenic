@@ -70,7 +70,9 @@ def _value_or_default(obj, key, default):
 def check_response(status, data):
     if status >= 400:
         error = None
-        if 'error' in data:
+        if 'status' in data:
+            error = data['status']
+        elif 'error' in data:
             error = data['error']
         elif 'state' in data:
             error = data['state']

@@ -54,6 +54,7 @@ class Connection:
         try:
             data = json.loads(response.body)
         except JSONDecodeError as exc:
+            log.error('json-decode', body=response.body)
             data = {
                 'error': '!internal',
                 'message': str(exc),
