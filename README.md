@@ -1,6 +1,7 @@
 # Async Webdriver
 
-[![CircleCI](https://circleci.com/gh/HDE/arsenic/tree/master.svg?style=svg)](https://circleci.com/gh/HDE/arsenic/tree/master)
+[![CircleCI](https://circleci.com/gh/HDE/arsenic/tree/master.svg?style=svg)](https://circleci.com/gh/HDE/arsenic/tree/master) [![Documentation Status](https://readthedocs.org/projects/arsenic/badge/?version=latest)](http://arsenic.readthedocs.io/en/latest/?badge=latest)
+
 
 Asynchronous, framework-independent webdriver client.
 
@@ -49,7 +50,7 @@ async def example():
             # go to example.com
             await session.get('http://example.com')
             # wait up to 5 seconds to get the h1 element from the page
-            h1 = await driver.wait(5, session.get_element, 'h1')
+            h1 = await driver.wait_for_element(5, 'h1')
             # print the text of the h1 element
             print(await h1.get_text())
 ```
