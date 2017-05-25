@@ -1,0 +1,8 @@
+.*
+/env/
+__pycache__
+*.egg-info
+geckodriver.log
+/docs/_build/
+/build/
+/dist/
