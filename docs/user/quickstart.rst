@@ -47,3 +47,30 @@ Create a file ``test_app.py`` and write the following code:
 Now if you run ``pytest test_app.py`` arsenic will spawn a Firefox instance and
 use it to check that your website is behaving correctly.
 
+Waiting
+*******
+
+Quite often you will need to wait for the browser context to be in a certain state.
+To do so, you can use :py:meth:`arsenic.session.Session.wait` which is a low
+level API to wait for certain conditions. It takes three arguments: A timeout
+as an integer or float of seconds to wait, a coroutine callback to check if the
+condition is met and an optional exception class or tuple of exception classes
+to ignore if they're raised by the callback.
+
+The callback should return a truthy value to indicate the condition is met.
+
+For extra convenience, there are built-in APIs to wait for an element to appear
+and an element to go away, :py:meth:`arsenic.Session.wait_for_element` and
+:py:meth:`arsenic.Session.wait_for_element_gone` respectively. Both take a
+timeout as an integer or float of seconds as first argument and a CSS selector
+as second argument. :py:meth:`arsenic.Session.wait_for_element` returns the
+element after it was found.
+
+An example to use the generic wait API to wait up to 5 seconds for an alert to
+show up would be::
+
+    alert_text = await session.wait(
+        5,
+        session.get_alert_text,
+        NoSuchAlert
+    )
