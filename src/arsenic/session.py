@@ -1,9 +1,12 @@
 from functools import partial
 from pathlib import Path
-from typing import Awaitable, Callable, Any, List
+from typing import Awaitable, Callable, Any, List, TYPE_CHECKING
 
-from arsenic.connection import Connection
-from arsenic.errors import NoSuchElement
+from arsenic.connection import Connection, WEB_ELEMENT
+from arsenic.errors import NoSuchElement, OperationNotSupported
+
+if TYPE_CHECKING:
+    from arsenic.actions import Actions
 
 UNSET = object()
 
@@ -27,7 +30,8 @@ def escape_value(value: str) -> str:
 
 
 class Element:
-    def __init__(self, connection: Connection, session: 'Session'):
+    def __init__(self, id: str, connection: Connection, session: 'Session'):
+        self.id = id
         self.connection = connection
         self.session = session
 
@@ -283,6 +287,13 @@ class Session:
             method='POST'
         )
 
+    async def perform_actions(self, actions: 'Actions'):
+        return await self.connection.request(
+            url='/actions',
+            method='POST',
+            data=actions.encode()
+        )
+
     async def close(self):
         await self.connection.request(
             url='',
@@ -291,6 +302,7 @@ class Session:
 
     def create_element(self, element_id):
         return self.element_class(
+            element_id,
             self.connection.prefixed(f'/element/{element_id}'),
             self
         )
@@ -324,3 +336,57 @@ class CompatSession(Session):
             }
         )
 
+    async def _pointer_down(self, device, action):
+        await self.connection.request(
+            url='/buttondown',
+            method='POST',
+            data=action.data
+        )
+
+    async def _pointer_up(self, device, action):
+        await self.connection.request(
+            url='/buttonup',
+            method='POST',
+            data=action.data
+        )
+
+    async def _pointer_move(self, device, action):
+        origin = action.data['origin']
+        if origin == 'pointer':
+            await self.connection.request(
+                url='/moveto',
+                method='POST',
+                data={
+                    'xoffset': action.data['x'],
+                    'yoffset': action.data['y'],
+                }
+            )
+        elif WEB_ELEMENT in origin:
+            await self.connection.request(
+                url='/moveto',
+                method='POST',
+                data={
+                    'element': origin[WEB_ELEMENT],
+                }
+            )
+        else:
+            raise OperationNotSupported(f'Cannot move using origin {origin}')
+
+    action_executors = {
+        ('pointer', 'pointerDown'): _pointer_down,
+        ('pointer', 'pointerUp'): _pointer_up,
+        ('pointer', 'pointerMove'): _pointer_move
+    }
+
+    async def perform_actions(self, actions: 'Actions'):
+        for device in actions.devices:
+            for action in device.actions:
+                key = (device.type, action.type)
+                try:
+                    executor = self.action_executors[key]
+                except KeyError:
+                    raise OperationNotSupported(
+                        f'Action {action.type} of device type {device.type} is '
+                        f'not supported by this session'
+                    )
+                await executor(self, device, action)

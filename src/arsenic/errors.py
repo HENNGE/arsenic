@@ -7,6 +7,10 @@ class ArsenicError(Exception):
     pass
 
 
+class OperationNotSupported(ArsenicError):
+    pass
+
+
 class WebdriverError(ArsenicError):
     def __init__(self, message, screen, stacktrace):
         self.message = message

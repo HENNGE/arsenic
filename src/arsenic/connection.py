@@ -1,6 +1,5 @@
 import base64
 import json
-import os
 from io import BytesIO
 from json import JSONDecodeError
 from pathlib import Path
