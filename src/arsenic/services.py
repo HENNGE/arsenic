@@ -101,7 +101,7 @@ def auth_or_string(value):
 @attr.s
 class Remote(Service):
     url = attr.ib()
-    auth = attr.ib(default=None, convert=auth_or_string)
+    auth = attr.ib(default=None, convert=attr.converters.optional(auth_or_string))
 
     async def start(self, engine):
         closers = []
