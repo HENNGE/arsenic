@@ -52,10 +52,9 @@ Waiting
 
 Quite often you will need to wait for the browser context to be in a certain state.
 To do so, you can use :py:meth:`arsenic.session.Session.wait` which is a low
-level API to wait for certain conditions. It takes three arguments: A timeout
+level API to wait for certain conditions. It takes two or more arguments: A timeout
 as an integer or float of seconds to wait, a coroutine callback to check if the
-condition is met and an optional exception class or tuple of exception classes
-to ignore if they're raised by the callback.
+condition is met and an optionally exception classes which should be ignored.
 
 The callback should return a truthy value to indicate the condition is met.
 
