@@ -256,6 +256,33 @@ class Session:
             }
         )
 
+    async def get_alert_text(self) -> str:
+        return await self.connection.request(
+            url='/alert/text',
+            method='GET'
+        )
+
+    async def send_alert_text(self, value: str):
+        return await self.connection.request(
+            url='/alert/text',
+            method='POST',
+            data={
+                'text': value
+            }
+        )
+
+    async def dismiss_alert(self):
+        return await self.connection.request(
+            url='/alert/dismiss',
+            method='POST'
+        )
+
+    async def accept_alert(self):
+        return await self.connection.request(
+            url='/alert/accept',
+            method='POST'
+        )
+
     async def close(self):
         await self.connection.request(
             url='',
