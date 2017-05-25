@@ -7,6 +7,13 @@ Welcome to arsenic's documentation!
 ###################################
 
 
+.. warning::
+
+    While this library is asynchronous, web drivers are **not**. You must call
+    the APIs in sequence. The purpose of this library is to allow you to control
+    multiple web drivers asynchronously or to use a web driver in the same thread
+    as an asynchronous web server.
+
 .. toctree::
     :maxdepth: 2
     :caption: User Documentation

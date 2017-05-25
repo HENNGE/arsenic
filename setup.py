@@ -7,7 +7,7 @@ setup(
     package_dir={'': 'src'},
     packages=find_packages(where='src'),
     install_requires=[
-        'attrs',
+        'attrs>=17.1.0',
         'structlog',
     ],
     license='APLv2',

@@ -2,6 +2,8 @@ import base64
 import json
 from io import BytesIO
 from json import JSONDecodeError
+from pathlib import Path
+from zipfile import ZipFile, ZIP_DEFLATED
 
 from structlog import get_logger
 
@@ -54,6 +56,7 @@ class Connection:
         try:
             data = json.loads(response.body)
         except JSONDecodeError as exc:
+            log.error('json-decode', body=response.body)
             data = {
                 'error': '!internal',
                 'message': str(exc),
@@ -67,5 +70,24 @@ class Connection:
         if data:
             return unwrap(data.get('value', None))
 
+    async def upload_file(self, path: Path) -> Path:
+        return path
+
     def prefixed(self, prefix: str) -> 'Connection':
         return Connection(self.session, self.prefix + prefix)
+
+
+class RemoteConnection(Connection):
+    async def upload_file(self, path: Path) -> Path:
+        log.info('upload-file', path=path)
+        fobj = BytesIO()
+        with ZipFile(fobj, 'w', ZIP_DEFLATED) as zf:
+            zf.write(path, path.name)
+        content = base64.b64encode(fobj.getvalue()).decode('utf-8')
+        return await self.request(
+            url='/file',
+            method='POST',
+            data={
+                'file': content
+            }
+        )
