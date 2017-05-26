@@ -1,12 +1,10 @@
 from functools import partial
 from pathlib import Path
-from typing import Awaitable, Callable, Any, List, TYPE_CHECKING
+from typing import Awaitable, Callable, Any, List, Dict, Tuple, Iterator
+from itertools import zip_longest
 
 from arsenic.connection import Connection, WEB_ELEMENT
 from arsenic.errors import NoSuchElement, OperationNotSupported
-
-if TYPE_CHECKING:
-    from arsenic.actions import Actions
 
 UNSET = object()
 
@@ -288,11 +286,11 @@ class Session:
             method='POST'
         )
 
-    async def perform_actions(self, actions: 'Actions'):
+    async def perform_actions(self, actions: Dict[str, Any]):
         return await self.connection.request(
             url='/actions',
             method='POST',
-            data=actions.encode()
+            data=actions
         )
 
     async def close(self):
@@ -337,57 +335,63 @@ class CompatSession(Session):
             }
         )
 
-    async def _pointer_down(self, device, action):
-        await self.connection.request(
-            url='/buttondown',
-            method='POST',
-            data=action.data
-        )
-
-    async def _pointer_up(self, device, action):
-        await self.connection.request(
-            url='/buttonup',
-            method='POST',
-            data=action.data
-        )
-
-    async def _pointer_move(self, device, action):
-        origin = action.data['origin']
-        if origin == 'pointer':
+    async def perform_actions(self, actions: Dict[str, Any]):
+        for url, method, data in transform_legacy_actions(actions['actions']):
             await self.connection.request(
-                url='/moveto',
-                method='POST',
-                data={
-                    'xoffset': action.data['x'],
-                    'yoffset': action.data['y'],
-                }
+                url=url,
+                method=method,
+                data=data,
             )
-        elif WEB_ELEMENT in origin:
-            await self.connection.request(
-                url='/moveto',
-                method='POST',
-                data={
-                    'element': origin[WEB_ELEMENT],
-                }
+
+def _pointer_down(device, action):
+    del action['duration']
+    url = '/buttondown' if device['parameters']['pointerType'] == 'mouse' else '/touch/down'
+    yield url, 'POST', action
+
+
+def _pointer_up(self, device, action):
+    del action['duration']
+    url = '/buttonup' if device['parameters']['pointerType'] == 'mouse' else '/touch/up'
+    yield url, 'POST', action
+
+def _pointer_move(self, device, action):
+    del action['duration']
+    url = '/moveto' if device['parameters']['pointerType'] == 'mouse' else '/touch/move'
+    origin = action.data['origin']
+    if origin == 'pointer':
+        data = {
+            'xoffset': action.data['x'],
+            'yoffset': action.data['y'],
+        }
+    elif WEB_ELEMENT in origin:
+        data = {
+            'element': origin[WEB_ELEMENT],
+        }
+    else:
+        raise OperationNotSupported(f'Cannot move using origin {origin}')
+    yield url, 'POST', data
+
+legacy_actions = {
+    ('pointer', 'pointerDown'): _pointer_down,
+    ('pointer', 'pointerUp'): _pointer_up,
+    ('pointer', 'pointerMove'): _pointer_move
+}
+
+def transform_legacy_actions(devices: List[Dict[str, Any]]) -> Iterator[Tuple[str, str, Dict[str, Any]]]:
+    action_lists = []
+    for device in devices:
+        actions = device.pop('actions')
+        action_lists.append([
+            (device, action) for action in actions
+        ])
+    for device, action in zip_longest(*action_lists, fillvalue=(None, None)):
+        if device is None and action is None:
+            continue
+        device_type = device.pop('type')
+        action_type = action.pop('type')
+        try:
+            yield from legacy_actions[(device_type, action_type)](device, action)
+        except KeyError:
+            raise OperationNotSupported(
+                f'Unsupported action {action_type} for device_type {device_type}'
             )
-        else:
-            raise OperationNotSupported(f'Cannot move using origin {origin}')
-
-    action_executors = {
-        ('pointer', 'pointerDown'): _pointer_down,
-        ('pointer', 'pointerUp'): _pointer_up,
-        ('pointer', 'pointerMove'): _pointer_move
-    }
-
-    async def perform_actions(self, actions: 'Actions'):
-        for device in actions.devices:
-            for action in device.actions:
-                key = (device.type, action.type)
-                try:
-                    executor = self.action_executors[key]
-                except KeyError:
-                    raise OperationNotSupported(
-                        f'Action {action.type} of device type {device.type} is '
-                        f'not supported by this session'
-                    )
-                await executor(self, device, action)

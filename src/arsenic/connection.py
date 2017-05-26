@@ -5,6 +5,7 @@ from functools import wraps
 from io import BytesIO
 from json import JSONDecodeError
 from pathlib import Path
+from typing import Any
 from zipfile import ZipFile, ZIP_DEFLATED
 
 from aiohttp import ClientSession, ClientResponse
