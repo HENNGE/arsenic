@@ -4,7 +4,7 @@ from typing import List, TextIO
 
 import attr
 
-from arsenic.connection import Connection
+from arsenic.connection import Connection, RemoteConnection
 from arsenic.engines import Request, Engine, Auth, BasicAuth
 from arsenic.utils import free_port
 from arsenic.webdriver import WebDriver
@@ -108,7 +108,7 @@ class Remote(Service):
         try:
             session = await engine.http_session(self.auth)
             closers.append(session.close)
-            return WebDriver(engine, Connection(session, self.url), closers)
+            return WebDriver(engine, RemoteConnection(session, self.url), closers)
         except:
             for closer in reversed(closers):
                 await closer()

@@ -71,23 +71,25 @@ class Connection:
             return unwrap(data.get('value', None))
 
     async def upload_file(self, path: Path) -> Path:
+        log.info('upload-file', path=path, resolved_path=path)
         return path
 
     def prefixed(self, prefix: str) -> 'Connection':
-        return Connection(self.session, self.prefix + prefix)
+        return self.__class__(self.session, self.prefix + prefix)
 
 
 class RemoteConnection(Connection):
     async def upload_file(self, path: Path) -> Path:
-        log.info('upload-file', path=path)
         fobj = BytesIO()
         with ZipFile(fobj, 'w', ZIP_DEFLATED) as zf:
             zf.write(path, path.name)
         content = base64.b64encode(fobj.getvalue()).decode('utf-8')
-        return await self.request(
+        resolved = await self.request(
             url='/file',
             method='POST',
             data={
                 'file': content
             }
         )
+        log.info('upload-file', path=path, resolved_path=resolved)
+        return resolved
