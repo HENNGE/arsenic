@@ -3,31 +3,8 @@
 [![CircleCI](https://circleci.com/gh/HDE/arsenic/tree/master.svg?style=svg)](https://circleci.com/gh/HDE/arsenic/tree/master) [![Documentation Status](https://readthedocs.org/projects/arsenic/badge/?version=latest)](http://arsenic.readthedocs.io/en/latest/?badge=latest)
 
 
-Asynchronous, framework-independent webdriver client.
-
-## Features
-
-### Supported Frameworks
-
-* Tornado Support
-* Asyncio/Aiohttp Support
-
-### Supported Browsers
-
-* Firefox
-* Remote Firefox
-
-### Supported APIs
-
-* Start/stop session
-* Go to URL
-* Get URL
-* Get page source
-* Find element
-* Get element text
-* Send keys to element
-* Click element
-* Wait (eg until an element is there)
+Asynchronous, framework-independent webdriver client for AsyncIO/Aiohttp and
+Tornado.
 
 
 ## Quickstart
@@ -54,11 +31,3 @@ async def example():
             # print the text of the h1 element
             print(await h1.get_text())
 ```
-
-## Testing
-
-To run the tests, install circleci local and run `circleci build`.
-
-Alternatively you can run the app in `tests/app/` manually, set
-the `WEB_APP_BASE_URL` environment variable to the URL at which the
-app is running and execute `pytest`.
