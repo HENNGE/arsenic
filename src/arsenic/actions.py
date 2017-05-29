@@ -125,14 +125,14 @@ class Pointer(Device, metaclass=abc.ABCMeta):
 class Mouse(Pointer):
     pointer_type = PointerType.mouse
 
-    def down(self, button=Button.left) -> Tick:
+    def down(self, button: Button=Button.left) -> Tick:
         return self._tick(
             type='pointerDown',
             duration=0,
             button=button.value
         )
 
-    def up(self, button=Button.left) -> Tick:
+    def up(self, button: Button=Button.left) -> Tick:
         return self._tick(
             type='pointerUp',
             duration=0,
@@ -151,13 +151,13 @@ class Touch(Pointer):
 class Keyboard(Device):
     type = DeviceType.keyboard
 
-    def down(self, key):
+    def down(self, key: str) -> Tick:
         return self._tick(
             type='keyDown',
             value=key
         )
 
-    def up(self, key):
+    def up(self, key: str) -> Tick:
         return self._tick(
             type='keyUp',
             value=key
@@ -173,7 +173,7 @@ def gather_devices(ticks: Sequence[Tick]) -> Iterator[Device]:
         found.update(devices)
 
 
-def chain(*ticks: Tick):
+def chain(*ticks: Tick) -> Dict[str, List[Dict[str, Any]]]:
     devices = list(gather_devices(ticks))
     return {
         'actions': [

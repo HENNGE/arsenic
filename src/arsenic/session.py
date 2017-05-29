@@ -141,7 +141,7 @@ class Session:
             method='GET'
         )
 
-    async def get_page_source(self):
+    async def get_page_source(self) -> str:
         return await self.connection.request(
             url='/source',
             method='GET'
@@ -186,7 +186,7 @@ class Session:
                 return False
         return await self.wait(timeout, callback)
 
-    async def add_cookie(self, name, value, *, path=UNSET, domain=UNSET, secure=UNSET, expiry=UNSET):
+    async def add_cookie(self, name: str, value: str, *, path: str=UNSET, domain: str=UNSET, secure: bool=UNSET, expiry: int=UNSET):
         cookie = {
             'name': name,
             'value': value
@@ -207,7 +207,7 @@ class Session:
             }
         )
 
-    async def get_cookie(self, name):
+    async def get_cookie(self, name: str):
         return await self.connection.request(
             url=f'/cookie/{name}',
             method='GET'
@@ -219,7 +219,7 @@ class Session:
             method='GET'
         )
 
-    async def delete_cookie(self, name):
+    async def delete_cookie(self, name: str):
         await self.connection.request(
             url=f'/cookie/{name}',
             method='DELETE'
@@ -231,7 +231,7 @@ class Session:
             method='DELETE'
         )
 
-    async def execute_script(self, script, *args):
+    async def execute_script(self, script: str, *args: Any):
         return await self.connection.request(
             url='/execute/sync',
             method='POST',
@@ -252,7 +252,7 @@ class Session:
             }
         )
 
-    async def get_window_size(self, handle: str='current'):
+    async def get_window_size(self, handle: str='current') -> Tuple[int, int]:
         return await self.connection.request(
             url='/window/rect',
             method='GET',
@@ -405,7 +405,6 @@ def transform_legacy_actions(devices: List[Dict[str, Any]]) -> Iterator[Tuple[st
     for legacy_action in itertools.chain(*itertools.zip_longest(*action_lists, fillvalue=None)):
         if legacy_action is None:
             continue
-        print(legacy_action)
         device_type = legacy_action.device.pop('type')
         action_type = legacy_action.action.pop('type')
         try:

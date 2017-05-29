@@ -21,6 +21,10 @@ log = get_logger()
 
 
 def unwrap(value):
+    """
+    Unwrap a value returned from a webdriver. Specifically this means trying to
+    extract the element ID of a web element or a list of web elements.
+    """
     if isinstance(value, dict) and ('ELEMENT' in value or WEB_ELEMENT in value):
         wrapped_id = value.get('ELEMENT', None)
         if wrapped_id:
@@ -35,6 +39,11 @@ def unwrap(value):
 
 
 def wrap_screen(data):
+    """
+    Data returned from a webdriver may contain a screen, which is a base64
+    encoded PNG of the browser screen. This is a massive string and will make
+    logging useless, so we wrap it in a BytesIO.
+    """
     if isinstance(data, dict) and 'value' in data and isinstance(data['value'], dict) and 'screen' in data['value'] and data['value']['screen']:
         data['value']['screen'] = BytesIO(base64.b64decode(data['value']['screen']))
 
