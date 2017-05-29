@@ -60,8 +60,8 @@ def test_drag_n_drop():
 
 
 def test_two_finger():
-    finger1 = Touch()
-    finger2 = Touch()
+    finger1 = Touch('pointer1')
+    finger2 = Touch('pointer2')
     actions = chain(
         finger1.move_to(ELEMENT_ONE) & finger2.move_to(ELEMENT_TWO),
         finger1.down() & finger2.down(),

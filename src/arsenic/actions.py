@@ -1,6 +1,6 @@
 import abc
 from enum import Enum
-from typing import Sequence, Any, Iterator, List, Dict
+from typing import Sequence, Any, Iterator, List, Dict, Optional
 
 import attr
 
@@ -59,9 +59,13 @@ class Button(Enum):
 class Device(metaclass=abc.ABCMeta):
     type: DeviceType = abc.abstractproperty()
 
+    def __init__(self, device_id: Optional[str]=None):
+        self.device_id = device_id
+
     def info(self, index: int) -> Dict[str, Any]:
+        device_id = self.device_id or f'{self.type.value}{index}'
         return {
-            'id': f'{self.type.value}{index}',
+            'id': device_id,
             'type': self.type.value,
         }
 
