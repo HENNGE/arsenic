@@ -23,8 +23,8 @@
         });
         canvas.addEventListener('mouseup', function(event) {
             var distance = Math.abs(startx - event.clientX) + Math.abs(starty - event.clientY);
+            output.textContent = '';
             if (key) {
-                output.textContent = '';
                 for (var n = 0; n < distance; n++) {
                     output.textContent += key;
                 }

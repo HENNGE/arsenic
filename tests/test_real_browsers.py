@@ -1,7 +1,7 @@
 import pytest
 
 from arsenic.actions import Mouse, chain, Keyboard
-
+from arsenic.session import CompatSession
 
 pytestmark = pytest.mark.asyncio
 
@@ -53,12 +53,18 @@ async def test_cookies(session):
 
 
 async def test_chained_actions(session):
+    if isinstance(session, CompatSession):
+        raise pytest.skip('Unable to emulate keyboard actions')
+    async def check(actions, expected):
+        await session.perform_actions(actions)
+        output = await session.get_element('#output')
+        assert expected == await output.get_text()
     await session.get('/actions/')
     output = await session.wait_for_element(5, '#output')
     assert '' == await output.get_text()
-    canvas = await session.get_element('#canvas')
     mouse = Mouse()
     keyboard = Keyboard()
+    canvas = await session.get_element('#canvas')
     actions = chain(
         mouse.move_to(canvas),
         mouse.down(),
@@ -66,6 +72,11 @@ async def test_chained_actions(session):
         mouse.up(),
         keyboard.up('a'),
     )
-    await session.perform_actions(actions)
-    output = await session.get_element('#output')
-    assert ('a' * 30) == await output.get_text()
+    await check(actions, 'a' * 30)
+    actions = chain(
+        mouse.move_to(canvas),
+        mouse.down() & keyboard.down('a'),
+        mouse.move_by(10, 20) & keyboard.up('a'),
+        mouse.up()
+    )
+    await check(actions, '')

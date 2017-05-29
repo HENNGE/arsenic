@@ -159,7 +159,7 @@ class Keyboard(Device):
 
     def up(self, key):
         return self._tick(
-            type='keyDown',
+            type='keyUp',
             value=key
         )
 
