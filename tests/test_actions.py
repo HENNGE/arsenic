@@ -1,3 +1,5 @@
+from operator import itemgetter
+
 from arsenic.actions import Mouse, Touch, chain
 from arsenic.connection import WEB_ELEMENT
 from arsenic.session import Element
@@ -66,74 +68,73 @@ def test_two_finger():
         finger2.move_to(ELEMENT_TRI),
         finger1.up() & finger2.up()
     )
-    assert actions == {
-        'actions': [
-            {
-                'parameters': {
-                    'pointerType': 'touch'
-                },
-                'id': 'pointer1',
-                'type': 'pointer',
-                'actions': [
-                    {
-                        'type': 'pointerMove',
-                        'duration': 250,
-                        'origin': {
-                            WEB_ELEMENT: '1'
-                        },
-                        'x': 0,
-                        'y': 0
-                    },
-                    {
-                        'type': 'pointerDown',
-                        'duration': 0,
-                        'button': 0,
-                    },
-                    # create implicitly
-                    {
-                        'type': 'pause',
-                        'duration': 0
-                    }, {
-                        'type': 'pointerUp',
-                        'duration': 0,
-                        'button': 0,
-                    }
-                ]
+    devices = list(sorted(actions['actions'], key=itemgetter('id')))
+    assert devices == [
+        {
+            'parameters': {
+                'pointerType': 'touch'
             },
-            {
-                'parameters': {
-                    'pointerType': 'touch'
-                },
-                'id': 'pointer2',
-                'type': 'pointer',
-                'actions': [
-                    {
-                        'type': 'pointerMove',
-                        'duration': 250,
-                        'origin': {
-                            WEB_ELEMENT: '2'
-                        },
-                        'x': 0,
-                        'y': 0
+            'id': 'pointer1',
+            'type': 'pointer',
+            'actions': [
+                {
+                    'type': 'pointerMove',
+                    'duration': 250,
+                    'origin': {
+                        WEB_ELEMENT: '1'
                     },
-                    {
-                        'type': 'pointerDown',
-                        'duration': 0,
-                        'button': 0,
-                    }, {
-                        'type': 'pointerMove',
-                        'duration': 250,
-                        'origin': {
-                            WEB_ELEMENT: '3'
-                        },
-                        'x': 0,
-                        'y': 0
-                    }, {
-                        'type': 'pointerUp',
-                        'duration': 0,
-                        'button': 0,
-                    }
-                ]
-            }
-        ]
-    }
+                    'x': 0,
+                    'y': 0
+                },
+                {
+                    'type': 'pointerDown',
+                    'duration': 0,
+                    'button': 0,
+                },
+                # create implicitly
+                {
+                    'type': 'pause',
+                    'duration': 0
+                }, {
+                    'type': 'pointerUp',
+                    'duration': 0,
+                    'button': 0,
+                }
+            ]
+        },
+        {
+            'parameters': {
+                'pointerType': 'touch'
+            },
+            'id': 'pointer2',
+            'type': 'pointer',
+            'actions': [
+                {
+                    'type': 'pointerMove',
+                    'duration': 250,
+                    'origin': {
+                        WEB_ELEMENT: '2'
+                    },
+                    'x': 0,
+                    'y': 0
+                },
+                {
+                    'type': 'pointerDown',
+                    'duration': 0,
+                    'button': 0,
+                }, {
+                    'type': 'pointerMove',
+                    'duration': 250,
+                    'origin': {
+                        WEB_ELEMENT: '3'
+                    },
+                    'x': 0,
+                    'y': 0
+                }, {
+                    'type': 'pointerUp',
+                    'duration': 0,
+                    'button': 0,
+                }
+            ]
+        },
+    ]
