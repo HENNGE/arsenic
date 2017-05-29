@@ -62,8 +62,7 @@ async def test_chained_actions(session):
     actions = chain(
         mouse.move_to(canvas),
         mouse.down(),
-        mouse.move_by(10, 20),
-        keyboard.down('a'),
+        mouse.move_by(10, 20) & keyboard.down('a'),
         mouse.up(),
         keyboard.up('a'),
     )
