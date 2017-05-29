@@ -35,7 +35,7 @@ def unwrap(value):
 
 
 def wrap_screen(data):
-    if isinstance(data, dict) and 'value' in data and isinstance(data['value'], dict) and 'screen' in data['value']:
+    if isinstance(data, dict) and 'value' in data and isinstance(data['value'], dict) and 'screen' in data['value'] and data['value']['screen']:
         data['value']['screen'] = BytesIO(base64.b64decode(data['value']['screen']))
 
 
