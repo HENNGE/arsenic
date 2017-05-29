@@ -349,13 +349,13 @@ class CompatSession(Session):
 def _pointer_down(device, action):
     del action['duration']
     url = '/buttondown' if device['parameters']['pointerType'] == 'mouse' else '/touch/down'
-    yield url, 'POST', action
+    return url, 'POST', action
 
 
 def _pointer_up(device, action):
     del action['duration']
     url = '/buttonup' if device['parameters']['pointerType'] == 'mouse' else '/touch/up'
-    yield url, 'POST', action
+    return url, 'POST', action
 
 
 def _pointer_move(device, action):
@@ -373,11 +373,15 @@ def _pointer_move(device, action):
         }
     else:
         raise OperationNotSupported(f'Cannot move using origin {origin}')
-    yield url, 'POST', data
+    return url, 'POST', data
 
 
 def _pause(device, action):
-    raise StopIteration()
+    return None
+
+
+def key_down(device, action):
+    return '/keydown', 'POST', {''}
 
 
 legacy_actions = {
@@ -395,21 +399,30 @@ class LegacyAction:
     action = attr.ib()
 
 
+def get_legacy_actions(devices: List[Dict[str, Any]]) -> Iterator[LegacyAction]:
+    i = 0
+    while devices:
+        for device in devices:
+            action = device['actions'].pop(0)
+            i += 1
+            yield LegacyAction(device, action)
+        devices = [
+            device for device in devices if device['actions']
+        ]
+
+
 def transform_legacy_actions(devices: List[Dict[str, Any]]) -> Iterator[Tuple[str, str, Dict[str, Any]]]:
-    action_lists = []
-    for device in devices:
-        actions = device.pop('actions')
-        action_lists.append([
-            LegacyAction(device, action) for action in actions
-        ])
-    for legacy_action in itertools.chain(*itertools.zip_longest(*action_lists, fillvalue=None)):
-        if legacy_action is None:
-            continue
-        device_type = legacy_action.device.pop('type')
-        action_type = legacy_action.action.pop('type')
+    for legacy_action in get_legacy_actions(devices):
+        device_type = legacy_action.device['type']
+        action_type = legacy_action.action['type']
+        device = {key: value for key, value in legacy_action.device.items() if key != 'type'}
+        action = {key: value for key, value in legacy_action.action.items() if key != 'type'}
         try:
-            yield from legacy_actions[(device_type, action_type)](*attr.astuple(legacy_action))
+            handler = legacy_actions[(device_type, action_type)]
         except KeyError:
             raise OperationNotSupported(
                 f'Unsupported action {action_type} for device_type {device_type}'
             )
+        action = handler(device, action)
+        if action is not None:
+            yield action

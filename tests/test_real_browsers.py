@@ -1,7 +1,21 @@
+from contextlib import contextmanager
+
 import pytest
 
 from arsenic.actions import Mouse, chain, Keyboard
+<<<<<<< HEAD
 from arsenic.session import CompatSession
+=======
+from arsenic.browsers import Firefox
+from arsenic.errors import OperationNotSupported
+from arsenic.services import Remote
+from arsenic.session import CompatSession
+
+
+@contextmanager
+def null_context():
+    yield
+>>>>>>> refactored legacy action chains, documented keyboard actions
 
 pytestmark = pytest.mark.asyncio
 
@@ -53,30 +67,37 @@ async def test_cookies(session):
 
 
 async def test_chained_actions(session):
-    if isinstance(session, CompatSession):
-        raise pytest.skip('Unable to emulate keyboard actions')
     async def check(actions, expected):
         await session.perform_actions(actions)
         output = await session.get_element('#output')
         assert expected == await output.get_text()
+
     await session.get('/actions/')
     output = await session.wait_for_element(5, '#output')
     assert '' == await output.get_text()
     mouse = Mouse()
     keyboard = Keyboard()
     canvas = await session.get_element('#canvas')
-    actions = chain(
-        mouse.move_to(canvas),
-        mouse.down(),
-        mouse.move_by(10, 20) & keyboard.down('a'),
-        mouse.up(),
-        keyboard.up('a'),
+    ctx = (
+        pytest.raises(OperationNotSupported)
+        if
+        isinstance(session, CompatSession)
+        else
+        null_context
     )
-    await check(actions, 'a' * 30)
-    actions = chain(
-        mouse.move_to(canvas),
-        mouse.down() & keyboard.down('a'),
-        mouse.move_by(10, 20) & keyboard.up('a'),
-        mouse.up()
-    )
-    await check(actions, '')
+    with ctx:
+        actions = chain(
+            mouse.move_to(canvas),
+            mouse.down(),
+            mouse.move_by(10, 20) & keyboard.down('a'),
+            mouse.up(),
+            keyboard.up('a'),
+        )
+        await check(actions, 'a' * 30)
+        actions = chain(
+            mouse.move_to(canvas),
+            mouse.down() & keyboard.down('a'),
+            mouse.move_by(10, 20) & keyboard.up('a'),
+            mouse.up()
+        )
+        await check(actions, '')
