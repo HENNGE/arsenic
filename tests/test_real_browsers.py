@@ -1,5 +1,7 @@
 import pytest
 
+from arsenic.actions import Mouse, chain, Keyboard
+
 
 pytestmark = pytest.mark.asyncio
 
@@ -48,3 +50,23 @@ async def test_cookies(session):
     await session.get('/cookie/')
     h2 = await session.wait_for_element(5, 'h2')
     assert '' == await h2.get_text()
+
+
+async def test_chained_actions(session):
+    await session.get('/actions/')
+    output = await session.wait_for_element(5, '#output')
+    assert '' == await output.get_text()
+    canvas = await session.get_element('#canvas')
+    mouse = Mouse()
+    keyboard = Keyboard()
+    actions = chain(
+        mouse.move_to(canvas),
+        mouse.down(),
+        mouse.move_by(10, 20),
+        keyboard.down('a'),
+        mouse.up(),
+        keyboard.up('a'),
+    )
+    await session.perform_actions(actions)
+    output = await session.get_element('#output')
+    assert ('a' * 30) == await output.get_text()

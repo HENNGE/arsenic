@@ -1,7 +1,9 @@
 from functools import partial
 from pathlib import Path
 from typing import Awaitable, Callable, Any, List, Dict, Tuple, Iterator
-from itertools import zip_longest
+
+import attr
+import itertools
 
 from arsenic.connection import Connection, WEB_ELEMENT
 from arsenic.errors import NoSuchElement, OperationNotSupported
@@ -343,25 +345,27 @@ class CompatSession(Session):
                 data=data,
             )
 
+
 def _pointer_down(device, action):
     del action['duration']
     url = '/buttondown' if device['parameters']['pointerType'] == 'mouse' else '/touch/down'
     yield url, 'POST', action
 
 
-def _pointer_up(self, device, action):
+def _pointer_up(device, action):
     del action['duration']
     url = '/buttonup' if device['parameters']['pointerType'] == 'mouse' else '/touch/up'
     yield url, 'POST', action
 
-def _pointer_move(self, device, action):
+
+def _pointer_move(device, action):
     del action['duration']
     url = '/moveto' if device['parameters']['pointerType'] == 'mouse' else '/touch/move'
-    origin = action.data['origin']
+    origin = action['origin']
     if origin == 'pointer':
         data = {
-            'xoffset': action.data['x'],
-            'yoffset': action.data['y'],
+            'xoffset': action['x'],
+            'yoffset': action['y'],
         }
     elif WEB_ELEMENT in origin:
         data = {
@@ -371,26 +375,41 @@ def _pointer_move(self, device, action):
         raise OperationNotSupported(f'Cannot move using origin {origin}')
     yield url, 'POST', data
 
+
+def _pause(device, action):
+    raise StopIteration()
+
+
 legacy_actions = {
     ('pointer', 'pointerDown'): _pointer_down,
     ('pointer', 'pointerUp'): _pointer_up,
-    ('pointer', 'pointerMove'): _pointer_move
+    ('pointer', 'pointerMove'): _pointer_move,
+    ('pointer', 'pause'): _pause,
+    ('key', 'pause'): _pause,
 }
+
+
+@attr.s
+class LegacyAction:
+    device = attr.ib()
+    action = attr.ib()
+
 
 def transform_legacy_actions(devices: List[Dict[str, Any]]) -> Iterator[Tuple[str, str, Dict[str, Any]]]:
     action_lists = []
     for device in devices:
         actions = device.pop('actions')
         action_lists.append([
-            (device, action) for action in actions
+            LegacyAction(device, action) for action in actions
         ])
-    for device, action in zip_longest(*action_lists, fillvalue=(None, None)):
-        if device is None and action is None:
+    for legacy_action in itertools.chain(*itertools.zip_longest(*action_lists, fillvalue=None)):
+        if legacy_action is None:
             continue
-        device_type = device.pop('type')
-        action_type = action.pop('type')
+        print(legacy_action)
+        device_type = legacy_action.device.pop('type')
+        action_type = legacy_action.action.pop('type')
         try:
-            yield from legacy_actions[(device_type, action_type)](device, action)
+            yield from legacy_actions[(device_type, action_type)](*attr.astuple(legacy_action))
         except KeyError:
             raise OperationNotSupported(
                 f'Unsupported action {action_type} for device_type {device_type}'

@@ -40,5 +40,10 @@ def build_app() -> Application:
 def main():
     run_app(build_app(), host='0.0.0.0', port=5000)
 
+@app.route('/actions/')
+def actions():
+    return render_template('actions.html')
+
+
 if __name__ == "__main__":
     main()
