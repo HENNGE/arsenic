@@ -81,6 +81,8 @@ async def session(request, web_app):
     ctx = request.param
     bind = ctx.base_url or web_app
     session = await start_session(ctx.service, ctx.browser, bind=bind)
+    session.browser = ctx.browser
+    session.service = ctx.service
     try:
         yield session
     finally:

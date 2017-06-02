@@ -23,12 +23,13 @@
         });
         canvas.addEventListener('mouseup', function(event) {
             var distance = Math.abs(startx - event.clientX) + Math.abs(starty - event.clientY);
-            output.textContent = '';
+            var content = '';
             if (key) {
                 for (var n = 0; n < distance; n++) {
-                    output.textContent += key;
+                    content += key;
                 }
             }
+            output.textContent = content;
         });
         document.addEventListener('keydown', function(event) {
             key = event.key;

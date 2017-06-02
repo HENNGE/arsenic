@@ -1,11 +1,26 @@
 FROM ubuntu:zesty
 
-RUN apt-get update && apt-get install -y xvfb python3.6 python3.6-venv python3.6-dev firefox build-essential
+ENV DEBIAN_FRONTEND=noninteractive
 
-COPY geckodriver-v0.16.1-linux64.tar.gz geckodriver-v0.16.1-linux64.tar.gz
+RUN apt-get update && \
+  apt-get install -y software-properties-common && \
+  add-apt-repository ppa:mozillateam/firefox-next && \
+  apt-get update && \
+  apt-get install -y \
+    xvfb \
+    python3.6 \
+    python3.6-venv \
+    python3.6-dev \
+    build-essential \
+    wget \
+    firefox
 
-RUN tar xzvf geckodriver-v0.16.1-linux64.tar.gz
+ARG GECKODRIVER_VERSION=0.16.1
 
-RUN cp geckodriver /usr/local/bin/geckodriver
-
-RUN chmod +x /usr/local/bin/geckodriver
+RUN wget --no-verbose -O /tmp/geckodriver.tar.gz https://github.com/mozilla/geckodriver/releases/download/v$GECKODRIVER_VERSION/geckodriver-v$GECKODRIVER_VERSION-linux64.tar.gz \
+  && rm -rf /opt/geckodriver \
+  && tar -C /opt -zxf /tmp/geckodriver.tar.gz \
+  && rm /tmp/geckodriver.tar.gz \
+  && mv /opt/geckodriver /opt/geckodriver-$GECKODRIVER_VERSION \
+  && chmod 755 /opt/geckodriver-$GECKODRIVER_VERSION \
+  && ln -fs /opt/geckodriver-$GECKODRIVER_VERSION /usr/local/bin/geckodriver
