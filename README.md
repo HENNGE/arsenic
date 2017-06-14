@@ -24,7 +24,7 @@ async def example():
           # go to example.com
           await session.get('http://example.com')
           # wait up to 5 seconds to get the h1 element from the page
-          h1 = await driver.wait_for_element(5, 'h1')
+          h1 = await session.wait_for_element(5, 'h1')
           # print the text of the h1 element
           print(await h1.get_text())
 ```
