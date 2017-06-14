@@ -16,18 +16,16 @@ Welcome to arsenic's documentation!
 
 .. toctree::
     :maxdepth: 2
-    :caption: User Documentation
+    :caption: Tutorials
 
-    user/quickstart
-    user/concepts
+    tutorials/helloworld
 
 
 .. toctree::
     :maxdepth: 2
-    :caption: Contributor Documentation
+    :caption: How-to Guides
 
-    contrib/testing
-    contrib/extend
+    howto/pytest
 
 
 Indices and tables

@@ -9,19 +9,19 @@ from arsenic.session import Session
 class SessionContext:
     service = attr.ib()
     browser = attr.ib()
-    timeout = attr.ib()
+    bind = attr.ib()
     session = attr.ib(default=None)
 
     async def __aenter__(self):
-        self.session = await start_session(self.service, self.browser, self.timeout)
+        self.session = await start_session(self.service, self.browser, self.bind)
         return self.session
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         await stop_session(self.session)
 
 
-def get_session(service, browser, timeout=None):
-    return SessionContext(service, browser, timeout)
+def get_session(service, browser, bind=''):
+    return SessionContext(service, browser, bind)
 
 
 async def start_session(service: Service, browser: Browser, bind=''):
