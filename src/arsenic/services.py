@@ -32,6 +32,10 @@ def sync_factory(func):
     return sync
 
 
+async def tasked(coro):
+    return await asyncio.get_event_loop().create_task(coro)
+
+
 async def subprocess_based_service(cmd: List[str],
                                    service_url: str,
                                    log_file: TextIO) -> WebDriver:
@@ -50,10 +54,10 @@ async def subprocess_based_service(cmd: List[str],
         count = 0
         while True:
             try:
-                await session.request(
+                await tasked(session.request(
                     url=service_url + '/status',
                     method='GET'
-                )
+                ))
                 break
             except:
                 # TODO: make this better
