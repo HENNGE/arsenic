@@ -120,10 +120,11 @@ TWaiter = Callable[[int, TCallback], Awaitable[Any]]
 class Session:
     element_class = Element
 
-    def __init__(self, connection: Connection, wait=TWaiter, bind: str=''):
+    def __init__(self, connection: Connection, wait: TWaiter, driver, bind: str=''):
         self.connection = connection
         self.bind = bind
         self.wait = wait
+        self.driver = driver
 
     async def get(self, url: str):
         await self.connection.request(

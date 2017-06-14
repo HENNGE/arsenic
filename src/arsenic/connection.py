@@ -1,14 +1,16 @@
+import asyncio
 import base64
 import json
+from functools import wraps
 from io import BytesIO
 from json import JSONDecodeError
 from pathlib import Path
 from zipfile import ZipFile, ZIP_DEFLATED
 
+from aiohttp import ClientSession, ClientResponse
 from structlog import get_logger
 
 from arsenic import errors
-from arsenic.engines import Request, Response, HTTPSession
 
 
 WEB_ELEMENT = 'element-6066-11e4-a52e-4f735466cecf'
@@ -36,34 +38,44 @@ def wrap_screen(data):
         data['value']['screen'] = BytesIO(base64.b64decode(data['value']['screen']))
 
 
+def ensure_task(func):
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        return await asyncio.get_event_loop().create_task(func(*args, **kwargs))
+    return wrapper
+
+
 class Connection:
-    def __init__(self, session: HTTPSession, prefix: str):
+    def __init__(self, session: ClientSession, prefix: str):
         self.session = session
         self.prefix = prefix
 
+    @ensure_task
     async def request(self, *, url: str, method: str, data=None, raw=False):
         if data is None:
             data = {}
         if method not in {'POST', 'PUT'}:
             data = None
-        request = Request(
-            url=self.prefix + url,
+        body = json.dumps(data) if data is not None else None
+        full_url = self.prefix + url
+        log.info('request', url=full_url, method=method, body=body)
+        response: ClientResponse = await self.session.request(
+            url=full_url,
             method=method,
-            body=json.dumps(data) if data is not None else None
+            data=body
         )
-        log.info('request', request=request)
-        response: Response = await self.session.request(request)
+        response_body = await response.read()
         try:
-            data = json.loads(response.body)
+            data = json.loads(response_body)
         except JSONDecodeError as exc:
-            log.error('json-decode', body=response.body)
+            log.error('json-decode', body=response_body)
             data = {
                 'error': '!internal',
                 'message': str(exc),
                 'stacktrace': ''
             }
         wrap_screen(data)
-        log.info('response', request=request, response=response, data=data)
+        log.info('response', url=full_url, method=method, body=body, response=response, data=data)
         errors.check_response(response.status, data)
         if raw:
             return data

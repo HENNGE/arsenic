@@ -1,6 +1,5 @@
 pytest
-pytest-timeout
+pytest-asyncio
 pytest-cov
-aiohttp
-tornado
+jinja2
 sphinx
