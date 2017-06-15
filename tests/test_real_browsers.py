@@ -63,7 +63,7 @@ async def test_cookies(session):
 
 
 async def test_chained_actions(session):
-    if isinstance(session.browser, Firefox) and isinstance(session.driver, Remote):
+    if isinstance(session.browser, Firefox) and isinstance(session.service, Remote):
         pytest.xfail('remote firefox actions do not work')
 
     async def check(actions, expected):
