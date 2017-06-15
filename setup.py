@@ -9,16 +9,9 @@ setup(
     install_requires=[
         'attrs>=17.1.0',
         'structlog',
+        'aiohttp>=2',
     ],
     license='APLv2',
-    extras_require={
-        'aiohttp': [
-            'aiohttp>=2'
-        ],
-        'tornado': [
-            'tornado>=4.5'
-        ],
-    },
     classifiers=[
         'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: Apache Software License',

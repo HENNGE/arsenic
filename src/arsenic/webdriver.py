@@ -1,10 +1,10 @@
+import asyncio
 from typing import Awaitable, Callable, List, Any, Union, Type
 
 import time
 
 from arsenic.browsers import Browser
 from arsenic.connection import Connection
-from arsenic.engines import Engine
 from arsenic.errors import ArsenicTimeout
 from arsenic.session import Session
 
@@ -29,8 +29,7 @@ TClosers = List[Callable[..., Awaitable[None]]]
 
 
 class WebDriver:
-    def __init__(self, engine: Engine, connection: Connection, closers: TClosers):
-        self.engine = engine
+    def __init__(self, connection: Connection, closers: TClosers):
         self.connection = connection
         self.closers = closers
 
@@ -53,6 +52,7 @@ class WebDriver:
             connection=self.connection.prefixed(f'/session/{session_id}'),
             bind=bind,
             wait=self.wait,
+            driver=self,
         )
 
     async def close(self):
@@ -71,8 +71,8 @@ class WebDriver:
                 if result:
                     return result
                 else:
-                    await self.engine.sleep(0.2)
+                    await asyncio.sleep(0.2)
             except exceptions as exc:
                 err = exc
-                await self.engine.sleep(0.2)
+                await asyncio.sleep(0.2)
         raise ArsenicTimeout() from err

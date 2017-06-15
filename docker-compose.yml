@@ -3,11 +3,13 @@ services:
   webapp:
     build: tests/app
   firefox:
-    image: selenium/standalone-firefox
+    image: selenium/standalone-firefox:latest
     depends_on:
       - "webapp"
   test:
-    build: .
+    build:
+      context: .
+      dockerfile: tests/Dockerfile
     depends_on:
       - "webapp"
       - "firefox"

@@ -1,32 +1,44 @@
-from flask import Flask, render_template, request
+from aiohttp.web import Application, Response, run_app
+from pathlib import Path
 
-app = Flask(__name__)
+from jinja2 import FileSystemLoader, Environment
 
-
-@app.route('/')
-def index():
-    return render_template('index.html')
+TEMPLATES_DIR = Path(__file__).parent / 'templates'
 
 
-@app.route('/html/')
-def html():
-    return render_template('form.html')
+async def process_form(request):
+    return {'value': (await request.post()).get('field')}
+
+async def process_cookies(request):
+    return {'value': request.cookies.get('test', '')}
 
 
-@app.route('/form/', methods=['POST'])
-def form():
-    return render_template('data.html', value=request.form['field'])
+def render_view(jinja, template, process=None):
+    async def view(request):
+        data = {}
+        if process is not None:
+            data = await process(request)
+        response = await jinja.get_template(template).render_async(**data)
+        return Response(text=response, content_type='text/html')
+    return view
 
 
-@app.route('/js/')
-def name():
-    return render_template('js.html', name=name)
+def build_app() -> Application:
+    app = Application()
+    jinja = Environment(
+        loader=FileSystemLoader(str(TEMPLATES_DIR)),
+        enable_async=True,
+    )
+    app.router.add_get('/', render_view(jinja, 'index.html'))
+    app.router.add_get('/html/', render_view(jinja, 'form.html'))
+    app.router.add_post('/form/', render_view(jinja, 'data.html', process_form))
+    app.router.add_get('/js/', render_view(jinja, 'js.html'))
+    app.router.add_get('/cookie/', render_view(jinja, 'data.html', process_cookies))
+    return app
 
 
-@app.route('/cookie/')
-def cookie():
-    return render_template('data.html', value=request.cookies.get('test', ''))
-
+def main():
+    run_app(build_app(), host='0.0.0.0', port=5000)
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", debug=True)
+    main()

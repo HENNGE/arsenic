@@ -1,45 +1,71 @@
 import abc
+import asyncio
 import os
+from asyncio.subprocess import DEVNULL
+from functools import partial
 from typing import List, TextIO
 
 import attr
+from aiohttp import ClientSession
 
 from arsenic.connection import Connection, RemoteConnection
-from arsenic.engines import Request, Engine, Auth, BasicAuth
 from arsenic.utils import free_port
 from arsenic.webdriver import WebDriver
+from arsenic.http import Auth, BasicAuth
 
 
-async def subprocess_based_service(engine: Engine,
-                                   cmd: List[str],
+async def stop_process(process):
+    process.terminate()
+    try:
+        await asyncio.wait_for(process.communicate(), 1)
+    except asyncio.futures.TimeoutError:
+        process.kill()
+    try:
+        await asyncio.wait_for(process.communicate(), 1)
+    except asyncio.futures.TimeoutError:
+        pass
+
+
+def sync_factory(func):
+    async def sync():
+        func()
+    return sync
+
+
+async def tasked(coro):
+    return await asyncio.get_event_loop().create_task(coro)
+
+
+async def subprocess_based_service(cmd: List[str],
                                    service_url: str,
                                    log_file: TextIO) -> WebDriver:
     closers = []
     try:
-        process = await engine.start_process(
-            cmd,
-            os.environ,
-            log_file
+        if log_file is os.devnull:
+            log_file = DEVNULL
+        process = await asyncio.create_subprocess_exec(
+            *cmd,
+            stdout=log_file,
+            stderr=log_file,
         )
-        closers.append(process.close)
-        session = await engine.http_session()
-        closers.append(session.close)
-        request = Request(
-            url=service_url + '/status',
-            method='GET'
-        )
+        closers.append(partial(stop_process, process))
+        session = ClientSession()
+        closers.append(sync_factory(session.close))
         count = 0
         while True:
             try:
-                await session.request(request)
+                await tasked(session.request(
+                    url=service_url + '/status',
+                    method='GET'
+                ))
                 break
             except:
+                # TODO: make this better
                 count += 1
                 if count > 30:
                     raise Exception('not starting?')
-                await engine.sleep(0.5)
+                await asyncio.sleep(0.5)
         return WebDriver(
-            engine,
             Connection(session, service_url),
             closers,
         )
@@ -51,26 +77,8 @@ async def subprocess_based_service(engine: Engine,
 
 class Service(metaclass=abc.ABCMeta):
     @abc.abstractmethod
-    async def start(self, engine):
+    async def start(self) -> WebDriver:
         raise NotImplementedError()
-
-    def run(self, engine):
-        return ServiceContext(self, engine)
-
-
-@attr.s
-class ServiceContext:
-    service: Service = attr.ib()
-    engine = attr.ib()
-    driver = attr.ib(default=None)
-
-    async def __aenter__(self):
-        self.driver = await self.service.start(self.engine)
-        return self.driver
-
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        await self.driver.close()
-        self.driver = None
 
 
 @attr.s
@@ -78,10 +86,9 @@ class Geckodriver(Service):
     log_file = attr.ib(default=os.devnull)
     binary = attr.ib(default='geckodriver')
 
-    async def start(self, engine):
+    async def start(self):
         port = free_port()
         return await subprocess_based_service(
-            engine,
             [self.binary, '--port', str(port)],
             f'http://localhost:{port}',
             self.log_file
@@ -103,12 +110,12 @@ class Remote(Service):
     url = attr.ib()
     auth = attr.ib(default=None, convert=attr.converters.optional(auth_or_string))
 
-    async def start(self, engine):
+    async def start(self):
         closers = []
         try:
-            session = await engine.http_session(self.auth)
-            closers.append(session.close)
-            return WebDriver(engine, RemoteConnection(session, self.url), closers)
+            session = ClientSession()
+            closers.append(sync_factory(session.close))
+            return WebDriver(RemoteConnection(session, self.url), closers)
         except:
             for closer in reversed(closers):
                 await closer()
@@ -120,10 +127,9 @@ class PhantomJS(Service):
     log_file = attr.ib(default=os.devnull)
     binary = attr.ib(default='phantomjs')
 
-    async def start(self, engine):
+    async def start(self):
         port = free_port()
         return await subprocess_based_service(
-            engine,
             [self.binary, f'--webdriver={port}'],
             f'http://localhost:{port}/wd/hub',
             self.log_file,

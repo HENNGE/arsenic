@@ -1,6 +1,10 @@
 FROM ojii/arsenic-test:latest
 
-ADD . /code
+ADD setup.py /code/setup.py
+ADD pytest.ini /code/pytest.ini
+ADD src /code/src/
+ADD tests /code/tests/
+ADD docs /code/docs/
 
 WORKDIR /code
 
