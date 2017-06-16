@@ -1,6 +1,6 @@
 import abc
 from enum import Enum
-from typing import List, Dict, Any, Union
+from typing import Sequence, Any, Iterator, List, Dict, Optional
 
 import attr
 
@@ -8,12 +8,46 @@ from arsenic.connection import WEB_ELEMENT
 from arsenic.session import Element
 
 
-TOrigin = Union[Element, 'Origins']
+@attr.s
+class Action:
+    source = attr.ib()
+    payload = attr.ib()
 
 
-class Origins(Enum):
-    viewport = 'viewport'
+class Tick:
+    def __init__(self, *actions: Action):
+        self.actions: Dict['Device', 'Action'] = {
+            action.source: action
+            for action in actions
+        }
+
+    def __and__(self, other: 'Tick') -> 'Tick':
+        overlap = set(self.actions.keys()) & set(other.actions.keys())
+        if overlap:
+            raise ValueError(
+                f'Devices {overlap} have more than one action in this tick'
+            )
+        return Tick(*self.actions.values(), *other.actions.values())
+
+    def encode(self, device: 'Device') -> Dict[str, Any]:
+        if device not in self.actions:
+            return {
+                'type': 'pause',
+                'duration': 0,
+            }
+        else:
+            return self.actions[device].payload
+
+
+class DeviceType(Enum):
+    keyboard = 'key'
     pointer = 'pointer'
+
+
+class PointerType(Enum):
+    mouse = 'mouse'
+    pen = 'pen'
+    touch = 'touch'
 
 
 class Button(Enum):
@@ -23,110 +57,129 @@ class Button(Enum):
 
 
 class Device(metaclass=abc.ABCMeta):
-    id: str = abc.abstractproperty()
-    type: str = abc.abstractproperty()
-    parameters: Dict[str, str] = abc.abstractproperty()
+    type: DeviceType = abc.abstractproperty()
 
-    def __init__(self):
-        self.actions: List[Action] = []
+    def __init__(self, device_id: Optional[str]=None):
+        self.device_id = device_id
 
-    @abc.abstractmethod
-    def encode_actions(self) -> List[Dict[str, Any]]:
-        raise NotImplementedError()
-
-
-@attr.s
-class Action:
-    type = attr.ib()
-    duration = attr.ib()
-    data = attr.ib()
-
-    def encode(self):
+    def info(self, index: int) -> Dict[str, Any]:
+        device_id = self.device_id or f'{self.type.value}{index}'
         return {
-            'type': self.type,
-            'duration': self.duration,
-            **self.data
+            'id': device_id,
+            'type': self.type.value,
         }
 
+    def _tick(self, **payload: Any) -> Tick:
+        return Tick(Action(self, payload))
 
-def encode_origin(origin):
-    if isinstance(origin, Element):
-        return {WEB_ELEMENT: origin.id}
-    elif isinstance(origin, Origins):
-        return origin.value
-    else:
-        raise TypeError()
+    def pause(self, duration: int) -> Tick:
+        return self._tick(
+            type='pause',
+            duration=duration,
+        )
 
 
-class Mouse(Device):
-    id = 'mouse'
-    type = 'pointer'
-    parameters = {
-        'pointerType': 'mouse'
-    }
+class Pointer(Device, metaclass=abc.ABCMeta):
+    type = DeviceType.pointer
+    pointer_type: PointerType = abc.abstractproperty()
 
-    def move(self, origin: TOrigin, x: int, y: int, duration: int=250):
-        self.actions.append(Action(
+    def info(self, index: int) -> Dict[str, Any]:
+        return {
+            'parameters': {'pointerType': self.pointer_type.value},
+            **super().info(index)
+        }
+
+    def move_to(self, element: Element, duration: int=250) -> Tick:
+        return self._tick(
             type='pointerMove',
             duration=duration,
-            data={
-                'origin': encode_origin(origin),
-                'x': x,
-                'y': y
-            }
-        ))
+            origin={WEB_ELEMENT: element.id},
+            x=0,
+            y=0,
+        )
 
-    def button_down(self, button: Button=Button.left):
-        self.actions.append(Action(
+    def move_by(self, x: int, y: int, duration: int=250) -> Tick:
+        return self._tick(
+            type='pointerMove',
+            duration=duration,
+            origin='pointer',
+            x=x,
+            y=y,
+        )
+
+    def down(self) -> Tick:
+        return self._tick(
             type='pointerDown',
             duration=0,
-            data={
-                'button': button.value
-            }
-        ))
+            button=0,
+        )
 
-    def button_up(self, button: Button=Button.left):
-        self.actions.append(Action(
+    def up(self) -> Tick:
+        return self._tick(
             type='pointerUp',
             duration=0,
-            data={
-                'button': button.value
-            }
-        ))
-
-    def encode_actions(self):
-        return [action.encode() for action in self.actions]
+            button=0,
+        )
 
 
-class Actions:
-    def __init__(self):
-        self.mouse = Mouse()
-        self.devices: List[Device] = [self.mouse]
+class Mouse(Pointer):
+    pointer_type = PointerType.mouse
 
-    def move_to(self, element: Element) -> 'Actions':
-        self.mouse.move(element, 0, 0)
-        return self
+    def down(self, button: Button=Button.left) -> Tick:
+        return self._tick(
+            type='pointerDown',
+            duration=0,
+            button=button.value
+        )
 
-    def move_by(self, x: int, y: int) -> 'Actions':
-        self.mouse.move(Origins.pointer, x, y)
-        return self
+    def up(self, button: Button=Button.left) -> Tick:
+        return self._tick(
+            type='pointerUp',
+            duration=0,
+            button=button.value
+        )
 
-    def mouse_down(self) -> 'Actions':
-        self.mouse.button_down()
-        return self
 
-    def mouse_up(self) -> 'Actions':
-        self.mouse.button_up()
-        return self
+class Pen(Pointer):
+    pointer_type = PointerType.pen
 
-    def encode(self):
-        return {
-            'actions': [
-                {
-                    'id': device.id,
-                    'type': device.type,
-                    'parameters': device.parameters,
-                    'actions': device.encode_actions(),
-                } for device in self.devices
-            ]
-        }
+
+class Touch(Pointer):
+    pointer_type = PointerType.touch
+
+
+class Keyboard(Device):
+    type = DeviceType.keyboard
+
+    def down(self, key: str) -> Tick:
+        return self._tick(
+            type='keyDown',
+            value=key
+        )
+
+    def up(self, key: str) -> Tick:
+        return self._tick(
+            type='keyUp',
+            value=key
+        )
+
+
+def gather_devices(ticks: Sequence[Tick]) -> Iterator[Device]:
+    found = set()
+    for tick in ticks:
+        devices = set(tick.actions.keys())
+        for device in devices - found:
+            yield device
+        found.update(devices)
+
+
+def chain(*ticks: Tick) -> Dict[str, List[Dict[str, Any]]]:
+    devices = list(gather_devices(ticks))
+    return {
+        'actions': [
+            {
+                **device.info(index),
+                'actions': [tick.encode(device) for tick in ticks],
+            } for index, device in enumerate(devices, start=1)
+        ]
+    }

@@ -1,12 +1,12 @@
 from functools import partial
 from pathlib import Path
-from typing import Awaitable, Callable, Any, List, TYPE_CHECKING
+from typing import Awaitable, Callable, Any, List, Dict, Tuple, Iterator
+
+import attr
+import itertools
 
 from arsenic.connection import Connection, WEB_ELEMENT
 from arsenic.errors import NoSuchElement, OperationNotSupported
-
-if TYPE_CHECKING:
-    from arsenic.actions import Actions
 
 UNSET = object()
 
@@ -141,7 +141,7 @@ class Session:
             method='GET'
         )
 
-    async def get_page_source(self):
+    async def get_page_source(self) -> str:
         return await self.connection.request(
             url='/source',
             method='GET'
@@ -186,7 +186,7 @@ class Session:
                 return False
         return await self.wait(timeout, callback)
 
-    async def add_cookie(self, name, value, *, path=UNSET, domain=UNSET, secure=UNSET, expiry=UNSET):
+    async def add_cookie(self, name: str, value: str, *, path: str=UNSET, domain: str=UNSET, secure: bool=UNSET, expiry: int=UNSET):
         cookie = {
             'name': name,
             'value': value
@@ -207,7 +207,7 @@ class Session:
             }
         )
 
-    async def get_cookie(self, name):
+    async def get_cookie(self, name: str):
         return await self.connection.request(
             url=f'/cookie/{name}',
             method='GET'
@@ -219,7 +219,7 @@ class Session:
             method='GET'
         )
 
-    async def delete_cookie(self, name):
+    async def delete_cookie(self, name: str):
         await self.connection.request(
             url=f'/cookie/{name}',
             method='DELETE'
@@ -231,7 +231,7 @@ class Session:
             method='DELETE'
         )
 
-    async def execute_script(self, script, *args):
+    async def execute_script(self, script: str, *args: Any):
         return await self.connection.request(
             url='/execute/sync',
             method='POST',
@@ -252,7 +252,7 @@ class Session:
             }
         )
 
-    async def get_window_size(self, handle: str='current'):
+    async def get_window_size(self, handle: str='current') -> Tuple[int, int]:
         return await self.connection.request(
             url='/window/rect',
             method='GET',
@@ -288,11 +288,11 @@ class Session:
             method='POST'
         )
 
-    async def perform_actions(self, actions: 'Actions'):
+    async def perform_actions(self, actions: Dict[str, Any]):
         return await self.connection.request(
             url='/actions',
             method='POST',
-            data=actions.encode()
+            data=actions
         )
 
     async def close(self):
@@ -337,57 +337,92 @@ class CompatSession(Session):
             }
         )
 
-    async def _pointer_down(self, device, action):
-        await self.connection.request(
-            url='/buttondown',
-            method='POST',
-            data=action.data
-        )
-
-    async def _pointer_up(self, device, action):
-        await self.connection.request(
-            url='/buttonup',
-            method='POST',
-            data=action.data
-        )
-
-    async def _pointer_move(self, device, action):
-        origin = action.data['origin']
-        if origin == 'pointer':
+    async def perform_actions(self, actions: Dict[str, Any]):
+        for url, method, data in transform_legacy_actions(actions['actions']):
             await self.connection.request(
-                url='/moveto',
-                method='POST',
-                data={
-                    'xoffset': action.data['x'],
-                    'yoffset': action.data['y'],
-                }
+                url=url,
+                method=method,
+                data=data,
             )
-        elif WEB_ELEMENT in origin:
-            await self.connection.request(
-                url='/moveto',
-                method='POST',
-                data={
-                    'element': origin[WEB_ELEMENT],
-                }
+
+
+def _pointer_down(device, action):
+    del action['duration']
+    url = '/buttondown' if device['parameters']['pointerType'] == 'mouse' else '/touch/down'
+    return url, 'POST', action
+
+
+def _pointer_up(device, action):
+    del action['duration']
+    url = '/buttonup' if device['parameters']['pointerType'] == 'mouse' else '/touch/up'
+    return url, 'POST', action
+
+
+def _pointer_move(device, action):
+    del action['duration']
+    url = '/moveto' if device['parameters']['pointerType'] == 'mouse' else '/touch/move'
+    origin = action['origin']
+    if origin == 'pointer':
+        data = {
+            'xoffset': action['x'],
+            'yoffset': action['y'],
+        }
+    elif WEB_ELEMENT in origin:
+        data = {
+            'element': origin[WEB_ELEMENT],
+        }
+    else:
+        raise OperationNotSupported(f'Cannot move using origin {origin}')
+    return url, 'POST', data
+
+
+def _pause(device, action):
+    return None
+
+
+def key_down(device, action):
+    return '/keydown', 'POST', {''}
+
+
+legacy_actions = {
+    ('pointer', 'pointerDown'): _pointer_down,
+    ('pointer', 'pointerUp'): _pointer_up,
+    ('pointer', 'pointerMove'): _pointer_move,
+    ('pointer', 'pause'): _pause,
+    ('key', 'pause'): _pause,
+}
+
+
+@attr.s
+class LegacyAction:
+    device = attr.ib()
+    action = attr.ib()
+
+
+def get_legacy_actions(devices: List[Dict[str, Any]]) -> Iterator[LegacyAction]:
+    i = 0
+    while devices:
+        for device in devices:
+            action = device['actions'].pop(0)
+            i += 1
+            yield LegacyAction(device, action)
+        devices = [
+            device for device in devices if device['actions']
+        ]
+
+
+def transform_legacy_actions(devices: List[Dict[str, Any]]) -> Iterator[Tuple[str, str, Dict[str, Any]]]:
+    for legacy_action in get_legacy_actions(devices):
+        device_type = legacy_action.device['type']
+        action_type = legacy_action.action['type']
+        device = {key: value for key, value in legacy_action.device.items() if key != 'type'}
+        action = {key: value for key, value in legacy_action.action.items() if key != 'type'}
+        try:
+            handler = legacy_actions[(device_type, action_type)]
+        except KeyError:
+            raise OperationNotSupported(
+                f'Unsupported action {action_type} for device_type {device_type}'
             )
-        else:
-            raise OperationNotSupported(f'Cannot move using origin {origin}')
-
-    action_executors = {
-        ('pointer', 'pointerDown'): _pointer_down,
-        ('pointer', 'pointerUp'): _pointer_up,
-        ('pointer', 'pointerMove'): _pointer_move
-    }
-
-    async def perform_actions(self, actions: 'Actions'):
-        for device in actions.devices:
-            for action in device.actions:
-                key = (device.type, action.type)
-                try:
-                    executor = self.action_executors[key]
-                except KeyError:
-                    raise OperationNotSupported(
-                        f'Action {action.type} of device type {device.type} is '
-                        f'not supported by this session'
-                    )
-                await executor(self, device, action)
+        action = handler(device, action)
+        if action is not None:
+            yield action

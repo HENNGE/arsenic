@@ -1,3 +1,5 @@
+from typing import Union, Dict, Type, Any
+
 from structlog import get_logger
 
 log = get_logger()
@@ -27,16 +29,16 @@ class ArsenicTimeout(ArsenicError):
     pass
 
 
-CODES = {}
+CODES: Dict[Union[str, int], Type[WebdriverError]] = {}
 
 
-def get(error_code):
+def get(error_code: Union[str, int]) -> Type[WebdriverError]:
     return CODES.get(error_code, UnknownArsenicError)
 
 
-def create(error_name, *error_codes):
+def create(error_name: str, *error_codes: int) -> Type[WebdriverError]:
     name = ''.join(bit.capitalize() for bit in error_name.split(' '))
-    cls = type(name, (WebdriverError,), {})
+    cls: Type[WebdriverError] = type(name, (WebdriverError,), {})
     CODES[error_name] = cls
     for code in error_codes:
         CODES[code] = cls
@@ -67,11 +69,7 @@ InvalidSelector = create('invalid selector', 32)
 MoveTargetOutOfBounds = create('move target out of bounds', 34)
 
 
-def _value_or_default(obj, key, default):
-    return obj[key] if key in obj else default
-
-
-def check_response(status, data):
+def check_response(status: int, data: Dict[str, Any]):
     if status >= 400:
         error = None
         if 'status' in data:

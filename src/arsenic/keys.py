@@ -1,3 +1,8 @@
+"""
+This module contains special keys as defined in the web driver specification.
+
+They can be used in the send_keys API using string formatting.
+"""
 NULL = '\ue000'
 CANCEL = '\ue001'
 HELP = '\ue002'

@@ -34,11 +34,13 @@ def build_app() -> Application:
     app.router.add_post('/form/', render_view(jinja, 'data.html', process_form))
     app.router.add_get('/js/', render_view(jinja, 'js.html'))
     app.router.add_get('/cookie/', render_view(jinja, 'data.html', process_cookies))
+    app.router.add_get('/actions/', render_view(jinja, 'actions.html'))
     return app
 
 
 def main():
     run_app(build_app(), host='0.0.0.0', port=5000)
+
 
 if __name__ == "__main__":
     main()

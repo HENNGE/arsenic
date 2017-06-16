@@ -1,0 +1,43 @@
+<html>
+<head>
+  <style>
+    #canvas {
+      width: 200px;
+      height: 200px;
+      border: solid red 1px;
+    }
+  </style>
+</head>
+<body>
+<div id="canvas"></div>
+<div id="output"></div>
+<script>
+    (function() {
+        var canvas = document.getElementById('canvas');
+        var output = document.getElementById('output');
+
+        var startx, starty, key;
+        canvas.addEventListener('mousedown', function(event) {
+            startx = event.clientX;
+            starty = event.clientY;
+        });
+        canvas.addEventListener('mouseup', function(event) {
+            var distance = Math.abs(startx - event.clientX) + Math.abs(starty - event.clientY);
+            var content = '';
+            if (key) {
+                for (var n = 0; n < distance; n++) {
+                    content += key;
+                }
+            }
+            output.textContent = content;
+        });
+        document.addEventListener('keydown', function(event) {
+            key = event.key;
+        });
+        document.addEventListener('keyup', function(event) {
+            key = null;
+        });
+    })();
+</script>
+</body>
+</html>
