@@ -21,51 +21,15 @@ from aiohttp.web import Response, Application
 from arsenic import get_session, browsers, services
 
 
-async def handle_dnd(request):
+async def handle(request):
     return Response(status=200, content_type='text/html', body='''<html>
-<head>
-  <style>
-    #wrapper {
-      border: cyan 1px solid;
-      width: 500px;
-      height: 500px;
-    }
-    #draggable {
-      position: absolute;
-      left: 0;
-      top: 0;
-      width: 100px;
-      height: 100px;
-      border: pink 1px solid;
-    }
-</style>
-</head>
 <body>
-  <div id='wrapper'>
-    <div id='draggable' draggable='true'>Draggable</div>
-  </div>
+  <input id="range" type="range" min="1" max="100" value="1" /> <span id="output" />
   <script>
-    const draggable = document.getElementById('draggable');
-    const int = x => parseInt(x, 10);
-    const gpvi = (s, p) => int(s.getPropertyValue(p));
-    draggable.addEventListener('dragstart', event => {
-        const style = window.getComputedStyle(event.target, null);
-        event.dataTransfer.setData(
-            'text/plain',
-            JSON.stringify([gpvi(style, 'left') - event.clientX, gpvi(style, 'top') - event.clientY])
-        );
-    }, false);
-    document.body.addEventListener('dragover', event => {
-        event.preventDefault();
-        return false;
-    }, false);
-    document.body.addEventListener('drop', event => {
-        const [offset_left, offset_top] = JSON.parse(event.dataTransfer.getData('text/plain'));
-        draggable.style.left = `${event.clientX + offset_left}px`;
-        draggable.style.top = `${event.clientY + offset_top}px`;
-        event.preventDefault();
-        return false;
-    }, false);
+    const range = document.getElementById('range');
+    const output = document.getElementById('output');
+    output.textContent = range.value;
+    range.addEventListener('change', event => output.textContent = event.target.value);
     window.INITIALIZED = true;
   </script>
 </body>
@@ -74,7 +38,7 @@ async def handle_dnd(request):
 
 def build_app():
     app = Application()
-    app.router.add_get('/', handle_dnd)
+    app.router.add_get('/', handle)
     return app
 
 
@@ -110,16 +74,21 @@ def with_app_and_session(coro):
 
 @with_app_and_session
 async def run_drag_and_drop(session):
+    values = []
     await session.get('/')
     await session.wait(5, partial(session.execute_script, 'return window.INITIALIZED;'))
-    source = await session.get_element('#draggable')
-    await drag_and_drop(session, source, 100, 100)
-    await asyncio.sleep(10)
+    result = await session.get_element('#output')
+    values.append(await result.get_text())
+    source = await session.get_element('#range')
+    await drag_and_drop(session, source, 200, 0)
+    values.append(await result.get_text())
+    return values
 
 
 def main():
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(run_drag_and_drop())
+    values = loop.run_until_complete(run_drag_and_drop())
+    print(f'{values[0]} -> {values[1]}')
 
 
 if __name__ == '__main__':
