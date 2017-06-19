@@ -28,6 +28,12 @@ Welcome to arsenic's documentation!
     howto/pytest
     howto/action_chains
 
+.. toctree::
+    :maxdepth: 2
+    :caption: Reference
+
+    reference/index
+
 
 Indices and tables
 ==================
