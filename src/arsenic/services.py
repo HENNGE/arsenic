@@ -3,7 +3,7 @@ import asyncio
 import os
 from asyncio.subprocess import DEVNULL
 from functools import partial
-from typing import List, TextIO
+from typing import List, TextIO, Optional
 
 import attr
 from aiohttp import ClientSession
@@ -107,13 +107,16 @@ def auth_or_string(value):
 
 @attr.s
 class Remote(Service):
-    url = attr.ib()
-    auth = attr.ib(default=None, convert=attr.converters.optional(auth_or_string))
+    url: str = attr.ib()
+    auth: Optional[Auth] = attr.ib(default=None, convert=attr.converters.optional(auth_or_string))
 
     async def start(self):
         closers = []
+        headers = {}
+        if self.auth:
+            headers.update(self.auth.get_headers())
         try:
-            session = ClientSession()
+            session = ClientSession(headers=headers)
             closers.append(sync_factory(session.close))
             return WebDriver(RemoteConnection(session, self.url), closers)
         except:
