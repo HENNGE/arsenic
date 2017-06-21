@@ -8,15 +8,15 @@ RUN apt-get update && \
     python3.6-dev \
     build-essential \
     wget \
-    libfontconfig
+    unzip
 
 ARG PHANTOMJS_VERSION=phantomjs-1.9.8-linux-x86_64
 
-RUN wget --no-verbose -O /tmp/phantomjs.tar.bz2 https://bitbucket.org/ariya/phantomjs/downloads/$PHANTOMJS_VERSION.tar.bz2 \
-  && tar -xf /tmp/phantomjs.tar.bz2 -C /opt/ \
-  && rm /tmp/phantomjs.tar.bz2 \
-  && chmod 755 /opt/$PHANTOMJS_VERSION/bin/phantomjs \
-  && ln -fs /opt/$PHANTOMJS_VERSION/bin/phantomjs /usr/local/bin/phantomjs
+RUN wget --no-verbose -O /tmp/BrowserStackLocal.zip https://www.browserstack.com/browserstack-local/BrowserStackLocal-linux-x64.zip \
+  && unzip /tmp/BrowserStackLocal.zip BrowserStackLocal -d /opt/ \
+  && rm /tmp/BrowserStackLocal.zip \
+  && chmod 755 /opt/BrowserStackLocal \
+  && ln -fs /opt/BrowserStackLocal /usr/local/bin/BrowserStackLocal
 
 ADD setup.py /code/setup.py
 ADD pytest.ini /code/pytest.ini

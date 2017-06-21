@@ -37,6 +37,6 @@ RUN python3.6 -m venv test-env
 
 RUN test-env/bin/pip install -U pip setuptools wheel
 
-RUN test-env/bin/pip install . -r tests/requirements.txt
+RUN test-env/bin/pip install . -r tests/browser/requirements.txt
 
-CMD xvfb-run test-env/bin/pytest --verbose
+CMD xvfb-run test-env/bin/pytest --verbose tests/browser/

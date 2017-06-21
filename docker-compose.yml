@@ -1,5 +1,9 @@
 version: '2'
 services:
+  test-unit:
+    build:
+      context: .
+      dockerfile: tests/dockerfiles/unit
   test-phantomjs:
     build:
       context: .
@@ -8,3 +12,7 @@ services:
     build:
       context: .
       dockerfile: tests/dockerfiles/geckodriver
+  test-browserstack-ie:
+    build:
+      context: .
+      dockerfile: tests/dockerfiles/browserstack-ie
