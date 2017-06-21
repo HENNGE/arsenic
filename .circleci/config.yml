@@ -1,9 +1,11 @@
 version: 2
+defaults: &defaults
+  working_directory: /home/
+  docker:
+    - image: docker/compose:1.9.0
 jobs:
   build:
-    working_directory: /home/
-    docker:
-      - image: docker/compose:1.9.0
+    <<: *defaults
     steps:
       - setup_remote_docker:
           reusable: true
@@ -35,3 +37,53 @@ jobs:
               -e SPHINXBUILD=/code/test-env/bin/sphinx-build \
               --rm \
               test-phantomjs
+  setup:
+    <<: *defaults
+    steps:
+      - setup_remote_docker:
+          reusable: true
+          exclusive: true
+      - checkout
+      - run: docker-compose pull
+      - run: docker-compose build
+  phantomjs:
+    <<: *defaults
+    steps:
+      - run:
+          name: Run PhantomJS tests
+          command: |
+            docker-compose \
+              run \
+              -e ARSENIC_SERVICE=PhantomJS \
+              -e ARSENIC_BROWSER=PhantomJS \
+              -e ARSENIC_REMOTE=0 \
+              -e DOCS_DIR=/code/docs/ \
+              -e SPHINXBUILD=/code/test-env/bin/sphinx-build \
+              --rm \
+              test-phantomjs
+  geckodriver:
+    <<: *defaults
+    steps:
+      - run:
+          name: Run Geckodriver tests
+          command: |
+            docker-compose \
+              run \
+              -e ARSENIC_SERVICE=Geckodriver \
+              -e ARSENIC_BROWSER=Firefox \
+              -e ARSENIC_REMOTE=0 \
+              -e DOCS_DIR=/code/docs/ \
+              -e SPHINXBUILD=/code/test-env/bin/sphinx-build \
+              --rm \
+              test-geckodriver
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - setup
+      - phantomjs:
+        requires:
+          - setup
+      - geckodriver:
+        requires:
+          - setup
