@@ -1,10 +1,11 @@
 from contextlib import contextmanager
+from urllib.parse import urlparse
 
 import pytest
 
 from arsenic.actions import Mouse, chain, Keyboard
 from arsenic.browsers import Firefox
-from arsenic.errors import OperationNotSupported
+from arsenic.errors import OperationNotSupported, InvalidCookieDomain
 from arsenic.services import Remote
 from arsenic.session import CompatSession
 
