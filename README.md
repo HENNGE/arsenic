@@ -30,3 +30,9 @@ async def example():
 ```
 
 For more information, check [the documentation](https://arsenic.readthedocs.io/)
+
+## CI Supported by Browserstack
+
+Continuous integration for certain browsers is generously provided by [Browserstack](http://browserstack.com).
+
+[![Browserstack](./.circleci/browserstack-logo.png)](http://browserstack.com/)

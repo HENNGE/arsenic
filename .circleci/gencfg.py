@@ -19,6 +19,7 @@ def define_steps():
     )
     yield step(
         'browserstack-ie',
+        service='test-browserstack',
         ARSENIC_SERVICE='"Remote?url=http://${BROWSERSTACK_USERNAME}:${BROWSERSTACK_API_KEY}@hub.browserstack.com:80/wd/hub"',
         ARSENIC_BROWSER=browser(
             'InternetExplorer',
@@ -33,7 +34,7 @@ def define_steps():
             os='Windows',
             browser='IE',
             project='arsenic',
-            build='${CIRCLE_SHA1}-${CIRCLE_BUILD_NUM}',
+            build='${CIRCLE_SHA1}-${CIRCLE_BUILD_NUM}-IE',
 
         ),
         BROWSERSTACK_LOCAL_IDENTIFIER='"${CIRCLE_SHA1}"',
@@ -67,15 +68,16 @@ def _encode_browser_param(key, value):
         yield key, value
 
 
-def step(name, **env):
+def step(name, *, service=None, **env):
     return (
         name,
-        '\n'.join(_build_command(name, env))
+        '\n'.join(_build_command(name, service, env))
     )
 
 
-def _build_command(name, env):
+def _build_command(name, service, env):
     # use f-strings everywhere for nice indent
+    service = service or f'test-{name}'
     yield f'      - run:'
     yield f'          name: Run {name} tests'
     yield f'          command: |'
@@ -83,7 +85,7 @@ def _build_command(name, env):
     yield f'              run \\'
     yield from _build_env(env)
     yield f'              --rm \\'
-    yield f'              test-{name}'
+    yield f'              {service}'
 
 
 def _build_env(env):

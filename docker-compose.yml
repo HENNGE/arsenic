@@ -12,7 +12,7 @@ services:
     build:
       context: .
       dockerfile: tests/dockerfiles/geckodriver
-  test-browserstack-ie:
+  test-browserstack:
     build:
       context: .
-      dockerfile: tests/dockerfiles/browserstack-ie
+      dockerfile: tests/dockerfiles/browserstack
