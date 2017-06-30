@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Awaitable, Callable, Any, List, Dict, Tuple, Iterator
 
 import attr
+import base64
 import itertools
 
 from arsenic.connection import Connection, WEB_ELEMENT
@@ -294,6 +295,12 @@ class Session:
             method='POST',
             data=actions
         )
+
+    async def screenshot(self):
+        return base64.b64decode(await self.connection.request(
+            url='/screenshot',
+            method='GET'
+        ))
 
     async def close(self):
         await self.connection.request(

@@ -213,6 +213,12 @@
         Coroutine to perform a series of actions. Use :py:func:`arsenic.actions.chain`
         to build the actions object.
 
+    .. py:method:: screenshot
+
+        Coroutine to take a screenshot of the top-level browsing context’s viewport.
+
+        :rtype: bytes
+
     .. py:method:: close
 
         Coroutine to close this session.
