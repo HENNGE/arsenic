@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-
 def define_steps():
     yield step(
         'unit',
@@ -19,7 +18,7 @@ def define_steps():
     )
     yield step(
         'browserstack-ie',
-        service='test-browserstack',
+        dockerfile='tests/dockerfiles/browserstack',
         ARSENIC_SERVICE='"Remote?url=http://${BROWSERSTACK_USERNAME}:${BROWSERSTACK_API_KEY}@hub.browserstack.com:80/wd/hub"',
         ARSENIC_BROWSER=browser(
             'InternetExplorer',
@@ -44,6 +43,17 @@ def define_steps():
 
 # HERE BE DRAGONS
 from urllib.parse import urlencode
+import sys
+from typing import List, Tuple, Optional, Dict
+
+import attr
+
+
+@attr.s
+class Step:
+    name: str = attr.ib()
+    setup: List[str] = attr.ib()
+    run: List[str] = attr.ib()
 
 
 def browser(name, **options):
@@ -68,83 +78,106 @@ def _encode_browser_param(key, value):
         yield key, value
 
 
-def step(name, *, service=None, **env):
-    return (
+def step(name, *, dockerfile=None, **env):
+    return Step(
         name,
-        '\n'.join(_build_command(name, service, env))
+        *_build_commands(name, dockerfile, env)
     )
 
 
-def _build_command(name, service, env):
+def _build_commands(name: str, dockerfile: Optional[str], env: Dict[str, str]) -> Tuple[List[str], List[str]]:
     # use f-strings everywhere for nice indent
-    service = service or f'test-{name}'
-    yield f'      - run:'
-    yield f'          name: Run {name} tests'
-    yield f'          command: |'
-    yield f'            docker-compose \\'
-    yield f'              run \\'
-    yield from _build_env(env)
-    yield f'              --rm \\'
-    yield f'              {service}'
+    dockerfile = dockerfile or f'tests/dockerfiles/{name}'
+    return [
+        f'      - run:',
+        f'          name: Setup {name} ',
+        f'          command: |',
+        f'            docker build \\',
+        f'            --tag:latest {name} \\',
+        f'            --file {dockerfile} \\',
+        f'            .',
+    ], [
+        f'      - run:',
+        f'          name: Run {name} ',
+        f'          command: |',
+        f'            docker run \\',
+    ] + list(_build_env(env)) + [
+        f'            {name}:latest \\'
+    ]
 
 
 def _build_env(env):
     for key, value in env.items():
-        yield f'              -e {key}={value} \\'
+        yield f'              --env {key}={value} \\'
 
 
 STEPS = list(define_steps())
 
-PREAMBLE = '''version: 2
-defaults: &defaults
-  working_directory: /home/
-  docker:
-    - image: docker/compose:1.9.0
-jobs:
-  build:
-    <<: *defaults
-    steps:
-      - setup_remote_docker:
-          reusable: true
-          exclusive: true
-      - checkout
-      - run: docker-compose pull
-      - run: docker-compose build'''
+TASK_PREAMBLE = [
+    '    <<: *defaults',
+    '    steps:',
+    '      - setup_remote_docker:',
+    '          reusable: true',
+    '          exclusive: true',
+    '      - checkout',
+]
 
-SETUP = '''      - run: docker-compose pull
-      - run: docker-compose build'''
+COMMON_SETUP = [
+    '      - run:',
+    '          name: Build base image',
+    '          command: |',
+    '            docker build \\',
+    '            --tag base:1.0 \\',
+    '            --file tests/dockerfiles/base \\',
+    '            .'
+]
 
-COMMON_SETUP = '''    <<: *defaults
-    steps:
-      - setup_remote_docker:
-          reusable: true
-          exclusive: true
-      - checkout'''
+PREAMBLE = [
+    'version: 2',
+    'defaults: &defaults',
+    '  working_directory: /home/',
+    '  docker:',
+    '    - image: docker:latest',
+    'jobs:',
+    '  build:',
+] + TASK_PREAMBLE + COMMON_SETUP
 
-WORKFLOWS_PREAMBLE = '''workflows:
-  version: 2
-  build-and-deploy:
-    jobs:
-      - setup'''
+SETUP_TASK = [
+    '  setup:',
+] + TASK_PREAMBLE + COMMON_SETUP
+
+WORKFLOWS_PREAMBLE = [
+    'workflows:',
+    '  version: 2',
+    '  build-and-deploy:',
+    '    jobs:',
+    '      - setup'
+]
 
 
-def generate():
-    print(PREAMBLE)
-    for _, step in STEPS:
-        print(step)
-    print('  setup:')
-    print(COMMON_SETUP)
-    print('      - run: docker-compose pull')
-    print('      - run: docker-compose build')
-    for name, step in STEPS:
-        print(f'  {name}:')
-        print(COMMON_SETUP)
-        print(step)
-    print(WORKFLOWS_PREAMBLE)
-    for name, step in STEPS:
-        print(f'      - {name}:')
-        print('          requires:')
-        print('            - setup')
+def feed(itr, target):
+    for thing in itr:
+        target.write(f'{thing}\n')
+
+
+def generate(target):
+    feed(PREAMBLE, target)
+    for step in STEPS:
+        feed(step.setup, target)
+    for step in STEPS:
+        feed(step.run, target)
+    feed(SETUP_TASK, target)
+    for step in STEPS:
+        feed(step.setup, target)
+    for step in STEPS:
+        feed([f'  {step.name}:'] + TASK_PREAMBLE + step.run, target)
+    feed(WORKFLOWS_PREAMBLE, target)
+    for step in STEPS:
+        feed([
+            f'      - {step.name}:',
+            f'          requires:',
+            f'            - setup'
+        ], target)
 
 if __name__ == '__main__':
-    generate()
+    generate(sys.stdout)
