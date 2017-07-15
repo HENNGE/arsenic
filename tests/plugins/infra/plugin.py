@@ -37,7 +37,7 @@ async def browserstack_local(binary, key, identifier, command):
         '--daemon', command,
     )
     _, stderr = await process.communicate()
-    if process.pid != 0:
+    if process.returncode != 0:
         raise Exception(stderr)
 
 
