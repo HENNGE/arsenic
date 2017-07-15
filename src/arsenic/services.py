@@ -3,6 +3,7 @@ import asyncio
 import os
 import re
 from asyncio.subprocess import DEVNULL, PIPE
+from distutils.version import StrictVersion
 from functools import partial
 from typing import List, TextIO, Optional
 
@@ -123,12 +124,13 @@ class Geckodriver(Service):
                     'disable version checking, set `version_check` to '
                     '`False`.'
                 )
-            version = float(match.group(1))
-            if version < 0.17:
+            version_str = match.group(1)
+            version = StrictVersion(version_str)
+            if version < StrictVersion('0.16.1'):
                 raise ValueError(
-                    'Geckodriver version {version} is too old. 0.17 or '
-                    'higher is required. To disable version checking, set '
-                    '`version_check` to `False`.'
+                    f'Geckodriver version {version_str} is too old. 0.16.1 or '
+                    f'higher is required. To disable version checking, set '
+                    f'`version_check` to `False`.'
                 )
 
     async def start(self):
