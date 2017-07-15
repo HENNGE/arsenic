@@ -32,6 +32,7 @@ Welcome to arsenic's documentation!
     :maxdepth: 2
     :caption: Reference
 
+    reference/supported-browsers
     reference/index
 
 

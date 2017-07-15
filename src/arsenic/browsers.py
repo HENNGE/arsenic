@@ -34,3 +34,5 @@ class InternetExplorer(Browser):
         'version': '',
         'platform': 'WINDOWS',
     }
+
+IE = InternetExplorer

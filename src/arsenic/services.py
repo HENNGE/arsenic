@@ -6,6 +6,7 @@ from functools import partial
 from typing import List, TextIO, Optional
 
 import attr
+import sys
 from aiohttp import ClientSession
 
 from arsenic.connection import Connection, RemoteConnection
@@ -83,7 +84,7 @@ class Service(metaclass=abc.ABCMeta):
 
 @attr.s
 class Geckodriver(Service):
-    log_file = attr.ib(default=os.devnull)
+    log_file = attr.ib(default=sys.stdout)
     binary = attr.ib(default='geckodriver')
 
     async def start(self):
@@ -127,7 +128,7 @@ class Remote(Service):
 
 @attr.s
 class PhantomJS(Service):
-    log_file = attr.ib(default=os.devnull)
+    log_file = attr.ib(default=sys.stdout)
     binary = attr.ib(default='phantomjs')
 
     async def start(self):
