@@ -1,4 +1,5 @@
 from functools import partial
+from io import BytesIO
 from pathlib import Path
 from typing import Awaitable, Callable, Any, List, Dict, Tuple, Iterator
 
@@ -296,11 +297,11 @@ class Session:
             data=actions
         )
 
-    async def screenshot(self):
-        return base64.b64decode(await self.connection.request(
+    async def get_screenshot(self) -> BytesIO:
+        return BytesIO(base64.b64decode(await self.connection.request(
             url='/screenshot',
             method='GET'
-        ))
+        )))
 
     async def close(self):
         await self.connection.request(
