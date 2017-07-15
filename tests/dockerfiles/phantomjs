@@ -1,0 +1,35 @@
+FROM ubuntu:zesty
+
+RUN apt-get update && \
+  apt-get update && \
+  apt-get install -y \
+    python3.6 \
+    python3.6-venv \
+    python3.6-dev \
+    build-essential \
+    wget \
+    libfontconfig
+
+ARG PHANTOMJS_VERSION=phantomjs-1.9.8-linux-x86_64
+
+RUN wget --no-verbose -O /tmp/phantomjs.tar.bz2 https://bitbucket.org/ariya/phantomjs/downloads/$PHANTOMJS_VERSION.tar.bz2 \
+  && tar -xf /tmp/phantomjs.tar.bz2 -C /opt/ \
+  && rm /tmp/phantomjs.tar.bz2 \
+  && chmod 755 /opt/$PHANTOMJS_VERSION/bin/phantomjs \
+  && ln -fs /opt/$PHANTOMJS_VERSION/bin/phantomjs /usr/local/bin/phantomjs
+
+ADD setup.py /code/setup.py
+ADD pytest.ini /code/pytest.ini
+ADD src /code/src/
+ADD tests /code/tests/
+ADD docs /code/docs/
+
+WORKDIR /code
+
+RUN python3.6 -m venv test-env
+
+RUN test-env/bin/pip install -U pip setuptools wheel
+
+RUN test-env/bin/pip install . -r tests/browser/requirements.txt
+
+CMD test-env/bin/pytest --verbose tests/browser/

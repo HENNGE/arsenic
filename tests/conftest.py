@@ -1,4 +1,4 @@
 pytest_plugins = [
-    'tests.app.plugin',
-    'tests.infra.plugin',
+    'tests.plugins.app.plugin',
+    'tests.plugins.infra.plugin',
 ]

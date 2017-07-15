@@ -5,7 +5,6 @@ from typing import Awaitable, Callable, Any, List, Dict, Tuple, Iterator
 
 import attr
 import base64
-import itertools
 
 from arsenic.connection import Connection, WEB_ELEMENT
 from arsenic.errors import NoSuchElement, OperationNotSupported
