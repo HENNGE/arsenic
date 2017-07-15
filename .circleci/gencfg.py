@@ -93,7 +93,7 @@ def _build_commands(name: str, dockerfile: Optional[str], env: Dict[str, str]) -
         f'          name: Setup {name} ',
         f'          command: |',
         f'            docker build \\',
-        f'            --tag {name} \\',
+        f'            --tag:latest {name} \\',
         f'            --file {dockerfile} \\',
         f'            .',
     ], [
@@ -102,7 +102,7 @@ def _build_commands(name: str, dockerfile: Optional[str], env: Dict[str, str]) -
         f'          command: |',
         f'            docker run \\',
     ] + list(_build_env(env)) + [
-        f'            {name} \\'
+        f'            {name}:latest \\'
     ]
 
 
