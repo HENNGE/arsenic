@@ -41,10 +41,11 @@
 
 .. py:class:: Geckodriver(log_file=os.devnull, binary='geckodriver')
 
-    Geckodriver service.
+    Geckodriver service. Requires geckodriver 0.17 or higher.
 
     :param io.TextIO log_file: Log file to use.
     :param str binary: Path to the geckodriver binary.
+    :param bool version_check: Optional flag to disable version checking.
 
 
 .. py:class:: Remote(url, auth=None)
