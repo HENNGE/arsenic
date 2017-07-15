@@ -26,6 +26,7 @@ Welcome to arsenic's documentation!
     :caption: How-to Guides
 
     howto/pytest
+    howto/windows
     howto/action_chains
 
 .. toctree::
