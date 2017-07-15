@@ -1,12 +1,14 @@
 from contextlib import contextmanager
 
 import pytest
+from PIL import Image
 
 from arsenic.actions import Mouse, chain, Keyboard
 from arsenic.browsers import Firefox
 from arsenic.errors import OperationNotSupported
 from arsenic.services import Remote
 from arsenic.session import CompatSession
+from arsenic.utils import Rect
 
 
 @contextmanager
@@ -127,3 +129,24 @@ async def test_chained_actions(session):
             mouse.up()
         )
         await check(actions, '')
+
+
+async def test_get_screenshot(session):
+    await session.get('/screenshot/')
+    rect = await session.wait_for_element(5, '#rect')
+    screenshot = await session.get_screenshot()
+    image = Image.open(screenshot)
+    info = await rect.get_rect()
+    rect_img = image.crop((info.x, info.y, info.x + info.height, info.y + info.width))
+    colors = rect_img.getcolors()
+    assert len(colors) == 1
+    count, color = colors[0]
+    assert count == int(info.width * info.height)
+    assert color == (254, 220, 186, 255)
+
+
+async def test_get_rect(session):
+    await session.get('/screenshot/')
+    ele = await session.get_element('#rect')
+    rect = await ele.get_rect()
+    assert rect == Rect(0, 0, 100, 100)

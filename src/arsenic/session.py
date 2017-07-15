@@ -8,6 +8,7 @@ import base64
 
 from arsenic.connection import Connection, WEB_ELEMENT
 from arsenic.errors import NoSuchElement, OperationNotSupported
+from arsenic.utils import Rect, px_to_int
 
 UNSET = object()
 
@@ -86,6 +87,12 @@ class Element:
             method='GET'
         )
 
+    async def get_css_value(self, name: str) -> str:
+        return await self.connection.request(
+            url=f'/css/{name}',
+            method='GET',
+        )
+
     async def select_by_value(self, value: str):
         value = escape_value(value)
         option = await self.get_element(f'option[value={value}]')
@@ -112,6 +119,13 @@ class Element:
             }
         )
         return [self.session.create_element(element_id) for element_id in element_ids]
+
+    async def get_rect(self):
+        data = await self.connection.request(
+            url='/rect',
+            method='GET',
+        )
+        return Rect(data['x'], data['y'], data['width'], data['height'])
 
 
 TCallback = Callable[..., Awaitable[Any]]
@@ -316,7 +330,20 @@ class Session:
         )
 
 
+class CompatElement(Element):
+    async def get_rect(self):
+        location = await self.connection.request(
+            url='/location',
+            method='GET'
+        )
+        width = await self.get_css_value('width')
+        height = await self.get_css_value('height')
+        return Rect(location['x'], location['y'], px_to_int(width), px_to_int(height))
+
+
 class CompatSession(Session):
+    element_class = CompatElement
+
     async def set_window_size(self, width: int, height: int,
                               handle: str = 'current'):
         return await self.connection.request(
@@ -351,6 +378,12 @@ class CompatSession(Session):
                 method=method,
                 data=data,
             )
+
+    async def get_screenshot(self) -> BytesIO:
+        return BytesIO(base64.b64decode(await self.connection.request(
+            url='/screenshot',
+            method='GET'
+        )))
 
 
 def _pointer_down(device, action):

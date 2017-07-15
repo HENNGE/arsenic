@@ -1,20 +1,5 @@
-API Refrence
-############
-
-.. toctree::
-    :maxdepth: 2
-    :caption: APIs
-
-    services
-    browsers
-    session
-    keys
-    actions
-    errors
-    webdriver
-    connection
-    http
-    utils
+API Reference
+#############
 
 
 Main APIs
@@ -54,4 +39,21 @@ Main APIs
     :type session: Object returned from :py:func:`start_session`.
     :return: Nothing.
 
+
+All APIs
+********
+
+.. toctree::
+    :maxdepth: 2
+
+    services
+    browsers
+    session
+    keys
+    actions
+    errors
+    webdriver
+    connection
+    http
+    utils
 

@@ -61,6 +61,12 @@
 
         :param str value: Value of the option to select.
 
+    .. py:method:: get_rect()
+
+        Coroutine to get the location and size of the element.
+
+        :rtype: :py:class:`arsenic.utils.Rect`
+
     .. py:method:: get_element(selector)
 
         Coroutine to get a child element of this element via CSS selector.
@@ -213,11 +219,11 @@
         Coroutine to perform a series of actions. Use :py:func:`arsenic.actions.chain`
         to build the actions object.
 
-    .. py:method:: screenshot
+    .. py:method:: get_screenshot
 
         Coroutine to take a screenshot of the top-level browsing context’s viewport.
 
-        :rtype: bytes
+        :rtype: :py:class:`io.BytesIO`
 
     .. py:method:: close
 

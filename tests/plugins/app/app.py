@@ -35,6 +35,7 @@ def build_app() -> Application:
     app.router.add_get('/js/', render_view(jinja, 'js.html'))
     app.router.add_get('/cookie/', render_view(jinja, 'data.html', process_cookies))
     app.router.add_get('/actions/', render_view(jinja, 'actions.html'))
+    app.router.add_get('/screenshot/', render_view(jinja, 'screenshot.html'))
     return app
 
 
