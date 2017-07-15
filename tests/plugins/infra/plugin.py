@@ -29,6 +29,18 @@ def get_instance(config, module):
     return cls(**kwargs)
 
 
+async def browserstack_local(binary, key, identifier, command):
+    process = await asyncio.create_subprocess_exec(
+        binary,
+        '--key', key,
+        '--local-identifier', identifier,
+        '--daemon', command,
+    )
+    _, stderr = await process.communicate()
+    if process.pid != 0:
+        raise Exception(stderr)
+
+
 @attr.s
 class BrowserStackLocal:
     service: services.Service = attr.ib()
@@ -43,13 +55,10 @@ class BrowserStackLocal:
         self.binary = os.environ.get('BROWSERSTACK_BINARY', 'BrowserStackLocal')
 
     async def start(self) -> WebDriver:
-        self.process = await asyncio.create_subprocess_exec(
-            self.binary,
-            '--key', self.api_key,
-            '--local-identifier', self.identifier,
-        )
+        await browserstack_local(self.binary, self.api_key, self.identifier, 'start')
+
         webdriver: WebDriver = await self.service.start()
-        webdriver.closers.append(partial(services.stop_process, self.process))
+        webdriver.closers.append(partial(browserstack_local, self.api_key, self.identifier, 'stop'))
         return webdriver
 
 

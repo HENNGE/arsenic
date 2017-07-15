@@ -6,6 +6,7 @@ from io import BytesIO
 from json import JSONDecodeError
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse, urlunparse
 from zipfile import ZipFile, ZIP_DEFLATED
 
 from aiohttp import ClientSession, ClientResponse
@@ -55,6 +56,14 @@ def ensure_task(func):
     return wrapper
 
 
+def strip_auth(url: str) -> str:
+    pr = urlparse(url)
+    safe_netloc = pr.hostname
+    if pr.port:
+        safe_netloc = f'{safe_netloc}:{pr.port}'
+    return urlunparse((pr.scheme, safe_netloc, pr.path, pr.params, pr.query, pr.fragment))
+
+
 class Connection:
     def __init__(self, session: ClientSession, prefix: str):
         self.session = session
@@ -68,7 +77,7 @@ class Connection:
             data = None
         body = json.dumps(data) if data is not None else None
         full_url = self.prefix + url
-        log.info('request', url=full_url, method=method, body=body)
+        log.info('request', url=strip_auth(full_url), method=method, body=body)
         response: ClientResponse = await self.session.request(
             url=full_url,
             method=method,
@@ -85,7 +94,7 @@ class Connection:
                 'stacktrace': ''
             }
         wrap_screen(data)
-        log.info('response', url=full_url, method=method, body=body, response=response, data=data)
+        log.info('response', url=strip_auth(full_url), method=method, body=body, response=response, data=data)
         errors.check_response(response.status, data)
         if raw:
             return data

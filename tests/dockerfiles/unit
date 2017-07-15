@@ -22,4 +22,6 @@ RUN test-env/bin/pip install -U pip setuptools wheel
 
 RUN test-env/bin/pip install . -r tests/unit/requirements.txt
 
+RUN find . -regex "\(.*__pycache__.*\|*.py[co]\)" -delete
+
 CMD test-env/bin/pytest --verbose tests/unit/
