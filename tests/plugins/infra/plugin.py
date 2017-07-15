@@ -58,7 +58,9 @@ class BrowserStackLocal:
         await browserstack_local(self.binary, self.api_key, self.identifier, 'start')
 
         webdriver: WebDriver = await self.service.start()
-        webdriver.closers.append(partial(browserstack_local, self.api_key, self.identifier, 'stop'))
+        webdriver.closers.append(
+            partial(browserstack_local, self.binary, self.api_key, self.identifier, 'stop')
+        )
         return webdriver
 
 
