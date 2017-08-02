@@ -11,11 +11,12 @@ from arsenic.session import CompatSession
 from arsenic.utils import Rect
 
 
+pytestmark = pytest.mark.asyncio
+
+
 @contextmanager
 def null_context():
     yield
-
-pytestmark = pytest.mark.asyncio
 
 
 async def test_get_page_source(session):

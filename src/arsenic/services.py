@@ -1,7 +1,9 @@
 import abc
 import asyncio
 import os
-from asyncio.subprocess import DEVNULL
+import re
+from asyncio.subprocess import DEVNULL, PIPE
+from distutils.version import StrictVersion
 from functools import partial
 from typing import List, TextIO, Optional
 
@@ -37,9 +39,31 @@ async def tasked(coro):
     return await asyncio.get_event_loop().create_task(coro)
 
 
+def check_event_loop():
+    if sys.platform == 'win32' and isinstance(asyncio.get_event_loop(), asyncio.SelectorEventLoop):
+        raise ValueError(
+            'SelectorEventLoop is not supported on Windows, use asyncio.ProactorEventLoop instead.'
+        )
+
+
+async def run_subprocess(cmd: List[str]) -> str:
+    check_event_loop()
+    process = await asyncio.create_subprocess_exec(
+        *cmd,
+        stdout=PIPE,
+        stderr=PIPE
+    )
+    out, err = await process.communicate()
+    if process.returncode != 0:
+        raise Exception(err)
+    else:
+        return out.decode('utf-8')
+
+
 async def subprocess_based_service(cmd: List[str],
                                    service_url: str,
                                    log_file: TextIO) -> WebDriver:
+    check_event_loop()
     closers = []
     try:
         if log_file is os.devnull:
@@ -86,9 +110,32 @@ class Service(metaclass=abc.ABCMeta):
 class Geckodriver(Service):
     log_file = attr.ib(default=sys.stdout)
     binary = attr.ib(default='geckodriver')
+    version_check = attr.ib(default=True)
+
+    _version_re = re.compile(r'geckodriver (\d+\.\d+)')
+
+    async def _check_version(self):
+        if self.version_check:
+            output = await run_subprocess([self.binary, '--version'])
+            match = self._version_re.search(output)
+            if not match:
+                raise ValueError(
+                    'Could not determine version of geckodriver. To '
+                    'disable version checking, set `version_check` to '
+                    '`False`.'
+                )
+            version_str = match.group(1)
+            version = StrictVersion(version_str)
+            if version < StrictVersion('0.16.1'):
+                raise ValueError(
+                    f'Geckodriver version {version_str} is too old. 0.16.1 or '
+                    f'higher is required. To disable version checking, set '
+                    f'`version_check` to `False`.'
+                )
 
     async def start(self):
         port = free_port()
+        await self._check_version()
         return await subprocess_based_service(
             [self.binary, '--port', str(port)],
             f'http://localhost:{port}',
