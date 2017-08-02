@@ -96,6 +96,20 @@ class Geckodriver(Service):
         )
 
 
+@attr.s
+class Chromedriver(Service):
+    log_file = attr.ib(default=sys.stdout)
+    binary = attr.ib(default='chromedriver')
+
+    async def start(self):
+        port = free_port()
+        return await subprocess_based_service(
+            [self.binary, f'--port={port}'],
+            f'http://localhost:{port}',
+            self.log_file
+        )
+
+
 def auth_or_string(value):
     if isinstance(value, Auth):
         return value

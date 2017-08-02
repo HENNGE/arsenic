@@ -47,6 +47,14 @@
     :param str binary: Path to the geckodriver binary.
 
 
+.. py:class:: Chromedriver(log_file=os.devnull, binary='chromedriver')
+
+    Chromedriver service.
+
+    :param io.TextIO log_file: Log file to use.
+    :param str binary: Path to the chromedriver binary.
+
+
 .. py:class:: Remote(url, auth=None)
 
     Remote service.

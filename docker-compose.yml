@@ -16,3 +16,7 @@ services:
     build:
       context: .
       dockerfile: tests/dockerfiles/browserstack
+  test-chromedriver:
+    build:
+      context: .
+      dockerfile: tests/dockerfiles/chromedriver

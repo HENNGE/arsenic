@@ -14,43 +14,14 @@ jobs:
       - run: docker-compose pull
       - run: docker-compose build
       - run:
-          name: Run unit tests
+          name: Run chromedriver tests
           command: |
             docker-compose \
               run \
-              -e DOCS_DIR=/code/docs/ \
-              -e SPHINXBUILD=/code/test-env/bin/sphinx-build \
+              -e ARSENIC_SERVICE=Chromedriver \
+              -e ARSENIC_BROWSER=Chrome?chromeOptions=%7B%22args%22%3A+%5B%22--headless%22%2C+%22--disable-gpu%22%2C+%22--no-sandbox%22%5D%7D \
               --rm \
-              test-unit
-      - run:
-          name: Run phantomjs tests
-          command: |
-            docker-compose \
-              run \
-              -e ARSENIC_SERVICE=PhantomJS \
-              -e ARSENIC_BROWSER=PhantomJS \
-              --rm \
-              test-phantomjs
-      - run:
-          name: Run geckodriver tests
-          command: |
-            docker-compose \
-              run \
-              -e ARSENIC_SERVICE=Geckodriver \
-              -e ARSENIC_BROWSER=Firefox \
-              --rm \
-              test-geckodriver
-      - run:
-          name: Run browserstack-ie tests
-          command: |
-            docker-compose \
-              run \
-              -e ARSENIC_SERVICE="Remote?url=http://${BROWSERSTACK_USERNAME}:${BROWSERSTACK_API_KEY}@hub.browserstack.com:80/wd/hub" \
-              -e ARSENIC_BROWSER="InternetExplorer?version=11.0&resolution=1024x768&os_version=7&browser_version=11.0&browserstack.local=&browserstack.localIdentifier=${CIRCLE_SHA1}&os=Windows&browser=IE&project=arsenic&build=${CIRCLE_SHA1}-${CIRCLE_BUILD_NUM}-IE" \
-              -e BROWSERSTACK_LOCAL_IDENTIFIER="${CIRCLE_SHA1}" \
-              -e BROWSERSTACK_API_KEY="${BROWSERSTACK_API_KEY}" \
-              --rm \
-              test-browserstack
+              test-chromedriver
   setup:
     <<: *defaults
     steps:
@@ -60,7 +31,7 @@ jobs:
       - checkout
       - run: docker-compose pull
       - run: docker-compose build
-  unit:
+  chromedriver:
     <<: *defaults
     steps:
       - setup_remote_docker:
@@ -68,78 +39,19 @@ jobs:
           exclusive: true
       - checkout
       - run:
-          name: Run unit tests
+          name: Run chromedriver tests
           command: |
             docker-compose \
               run \
-              -e DOCS_DIR=/code/docs/ \
-              -e SPHINXBUILD=/code/test-env/bin/sphinx-build \
+              -e ARSENIC_SERVICE=Chromedriver \
+              -e ARSENIC_BROWSER=Chrome?chromeOptions=%7B%22args%22%3A+%5B%22--headless%22%2C+%22--disable-gpu%22%2C+%22--no-sandbox%22%5D%7D \
               --rm \
-              test-unit
-  phantomjs:
-    <<: *defaults
-    steps:
-      - setup_remote_docker:
-          reusable: true
-          exclusive: true
-      - checkout
-      - run:
-          name: Run phantomjs tests
-          command: |
-            docker-compose \
-              run \
-              -e ARSENIC_SERVICE=PhantomJS \
-              -e ARSENIC_BROWSER=PhantomJS \
-              --rm \
-              test-phantomjs
-  geckodriver:
-    <<: *defaults
-    steps:
-      - setup_remote_docker:
-          reusable: true
-          exclusive: true
-      - checkout
-      - run:
-          name: Run geckodriver tests
-          command: |
-            docker-compose \
-              run \
-              -e ARSENIC_SERVICE=Geckodriver \
-              -e ARSENIC_BROWSER=Firefox \
-              --rm \
-              test-geckodriver
-  browserstack-ie:
-    <<: *defaults
-    steps:
-      - setup_remote_docker:
-          reusable: true
-          exclusive: true
-      - checkout
-      - run:
-          name: Run browserstack-ie tests
-          command: |
-            docker-compose \
-              run \
-              -e ARSENIC_SERVICE="Remote?url=http://${BROWSERSTACK_USERNAME}:${BROWSERSTACK_API_KEY}@hub.browserstack.com:80/wd/hub" \
-              -e ARSENIC_BROWSER="InternetExplorer?version=11.0&resolution=1024x768&os_version=7&browser_version=11.0&browserstack.local=&browserstack.localIdentifier=${CIRCLE_SHA1}&os=Windows&browser=IE&project=arsenic&build=${CIRCLE_SHA1}-${CIRCLE_BUILD_NUM}-IE" \
-              -e BROWSERSTACK_LOCAL_IDENTIFIER="${CIRCLE_SHA1}" \
-              -e BROWSERSTACK_API_KEY="${BROWSERSTACK_API_KEY}" \
-              --rm \
-              test-browserstack
+              test-chromedriver
 workflows:
   version: 2
   build-and-deploy:
     jobs:
       - setup
-      - unit:
-          requires:
-            - setup
-      - phantomjs:
-          requires:
-            - setup
-      - geckodriver:
-          requires:
-            - setup
-      - browserstack-ie:
+      - chromedriver:
           requires:
             - setup
