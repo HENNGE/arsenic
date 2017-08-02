@@ -19,3 +19,20 @@ Supported Browsers
    * - PhantomJS
      - 1.9.8
      - PhantomJS 1.9.8
+   * - Google Chrome
+     - 59
+     - Chromedriver 2.321
+
+
+Headless Google Chrome
+**********************
+
+
+To use Google Chrome headless, use::
+
+    service = services.Chromedriver()
+    browser = browsers.Chrome(chromeOptions={
+        'args': ['--headless', '--disable-gpu']
+    })
+    async with get_session(service, browser) as session:
+        ...

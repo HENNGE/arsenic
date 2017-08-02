@@ -17,6 +17,13 @@ class Firefox(Browser):
     }
 
 
+class Chrome(Browser):
+    session_class = CompatSession
+    defaults = {
+        'browserName': 'chrome',
+    }
+
+
 class PhantomJS(Browser):
     session_class = CompatSession
     defaults = {

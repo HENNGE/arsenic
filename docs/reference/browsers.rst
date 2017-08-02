@@ -31,6 +31,11 @@
     Firefox with default capabilities.
 
 
+.. py:class:: Chrome(Browser)
+
+    Chrome with default capabilities.
+
+
 .. py:class:: PhantomJS(Browser)
 
     PhantomJS with default capabilities.

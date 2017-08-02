@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import json
 
 
 def define_steps():
@@ -16,6 +17,17 @@ def define_steps():
         'geckodriver',
         ARSENIC_SERVICE='Geckodriver',
         ARSENIC_BROWSER='Firefox',
+    )
+    yield step(
+        'chromedriver',
+        ARSENIC_SERVICE='Chromedriver',
+        ARSENIC_BROWSER='Chrome?{qs}'.format(
+            qs=urlencode({
+                'chromeOptions': json.dumps({
+                    'args': ['--headless', '--disable-gpu', '--no-sandbox']
+                })
+            })
+        ),
     )
     yield step(
         'browserstack-ie',

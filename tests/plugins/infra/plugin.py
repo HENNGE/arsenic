@@ -1,4 +1,5 @@
 import asyncio
+import json
 import os
 from asyncio.subprocess import Process
 from functools import partial
@@ -18,11 +19,18 @@ class BrowserContext:
     base_url = attr.ib(default=None)
 
 
+def maybe_json(value):
+    try:
+        return json.loads(value)
+    except:
+        return value
+
+
 def get_instance(config, module):
     parse_result = urlparse(config)
     cls = getattr(module, parse_result.path)
     kwargs = {
-        key: value if value else True
+        key: maybe_json(value) if value else True
         for key, value in
         parse_qsl(parse_result.query, keep_blank_values=True)
     }
