@@ -153,7 +153,7 @@ jobs:
               test-browserstack
 workflows:
   version: 2
-  build-and-deploy:
+  build-test-and-deploy:
     jobs:
       - setup
       - unit:

@@ -135,7 +135,7 @@ COMMON_SETUP = '''    <<: *defaults
 
 WORKFLOWS_PREAMBLE = '''workflows:
   version: 2
-  build-and-deploy:
+  build-test-and-deploy:
     jobs:
       - setup'''
 
