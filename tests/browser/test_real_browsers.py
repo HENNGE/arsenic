@@ -5,7 +5,7 @@ from PIL import Image
 
 from arsenic.actions import Mouse, chain, Keyboard
 from arsenic.browsers import Firefox
-from arsenic.errors import OperationNotSupported
+from arsenic.errors import OperationNotSupported, NoSuchElement
 from arsenic.services import Remote
 from arsenic.session import CompatSession
 from arsenic.utils import Rect
@@ -22,6 +22,12 @@ def null_context():
 async def test_get_page_source(session):
     await session.get('/')
     assert 'Hello World!' in await session.get_page_source()
+
+
+async def test_element_not_found(session):
+    await session.get('/')
+    with pytest.raises(NoSuchElement):
+        await session.get_element('h2')
 
 
 async def test_simple_form_submit(session):

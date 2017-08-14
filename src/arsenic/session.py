@@ -6,7 +6,8 @@ from typing import Awaitable, Callable, Any, List, Dict, Tuple, Iterator
 import attr
 import base64
 
-from arsenic.connection import Connection, WEB_ELEMENT
+from arsenic import errors, constants
+from arsenic.connection import Connection
 from arsenic.errors import NoSuchElement, OperationNotSupported
 from arsenic.utils import Rect, px_to_int
 
@@ -31,20 +32,51 @@ def escape_value(value: str) -> str:
         return f'"{value}"'
 
 
-class Element:
+class RequestHelpers:
+    async def _request(self, *, url: str, method: str, data=None, raw=False):
+        status, data = await self.connection.request(url=url, method=method, data=data)
+        self._check_response_error(status, data)
+        if raw:
+            return data
+        if data:
+            return self._unwrap(data.get('value', None))
+
+    def _check_response_error(self, status: int, data: Any) -> None:
+        if status >= 400:
+            errors.raise_exception(data, status)
+
+    def _unwrap(self, value):
+        """
+        Unwrap a value returned from a webdriver. Specifically this means trying to
+        extract the element ID of a web element or a list of web elements.
+        """
+        if isinstance(value, dict) and ('ELEMENT' in value or constants.WEB_ELEMENT in value):
+            wrapped_id = value.get('ELEMENT', None)
+            if wrapped_id:
+                return value['ELEMENT']
+            else:
+                return value[constants.WEB_ELEMENT]
+
+        elif isinstance(value, list):
+            return list(self._unwrap(item) for item in value)
+        else:
+            return value
+
+
+class Element(RequestHelpers):
     def __init__(self, id: str, connection: Connection, session: 'Session'):
         self.id = id
         self.connection = connection
         self.session = session
 
     async def get_text(self) -> str:
-        return await self.connection.request(
+        return await self._request(
             url='/text',
             method='GET'
         )
 
     async def send_keys(self, keys: str):
-        await self.connection.request(
+        await self._request(
             url='/value',
             method='POST',
             data={
@@ -58,37 +90,37 @@ class Element:
         await self.send_keys(str(path))
 
     async def clear(self):
-        await self.connection.request(
+        await self._request(
             url='/clear',
             method='POST'
         )
 
     async def click(self):
-        await self.connection.request(
+        await self._request(
             url='/click',
             method='POST'
         )
 
     async def is_displayed(self) -> bool:
-        return await self.connection.request(
+        return await self._request(
             url='/displayed',
             method='GET'
         )
 
     async def is_enabled(self) -> bool:
-        return await self.connection.request(
+        return await self._request(
             url='/enabled',
             method='GET'
         )
 
     async def get_attribute(self, name: str) -> str:
-        return await self.connection.request(
+        return await self._request(
             url=f'/attribute/{name}',
             method='GET'
         )
 
     async def get_css_value(self, name: str) -> str:
-        return await self.connection.request(
+        return await self._request(
             url=f'/css/{name}',
             method='GET',
         )
@@ -99,7 +131,7 @@ class Element:
         await option.click()
 
     async def get_element(self, selector: str) -> 'Element':
-        element_id = await self.connection.request(
+        element_id = await self._request(
             url='/element',
             method='POST',
             data={
@@ -110,7 +142,7 @@ class Element:
         return self.session.create_element(element_id)
 
     async def get_elements(self, selector: str) -> List['Element']:
-        element_ids = await self.connection.request(
+        element_ids = await self._request(
             url='/elements',
             method='POST',
             data={
@@ -121,7 +153,7 @@ class Element:
         return [self.session.create_element(element_id) for element_id in element_ids]
 
     async def get_rect(self):
-        data = await self.connection.request(
+        data = await self._request(
             url='/rect',
             method='GET',
         )
@@ -132,7 +164,7 @@ TCallback = Callable[..., Awaitable[Any]]
 TWaiter = Callable[[int, TCallback], Awaitable[Any]]
 
 
-class Session:
+class Session(RequestHelpers):
     element_class = Element
 
     def __init__(self, connection: Connection, wait: TWaiter, driver, bind: str=''):
@@ -142,7 +174,7 @@ class Session:
         self.driver = driver
 
     async def get(self, url: str):
-        await self.connection.request(
+        await self._request(
             url='/url',
             method='POST',
             data={
@@ -151,19 +183,19 @@ class Session:
         )
 
     async def get_url(self):
-        return await self.connection.request(
+        return await self._request(
             url='/url',
             method='GET'
         )
 
     async def get_page_source(self) -> str:
-        return await self.connection.request(
+        return await self._request(
             url='/source',
             method='GET'
         )
 
     async def get_element(self, selector: str) -> Element:
-        element_id = await self.connection.request(
+        element_id = await self._request(
             url='/element',
             method='POST',
             data={
@@ -174,7 +206,7 @@ class Session:
         return self.create_element(element_id)
 
     async def get_elements(self, selector: str) -> List[Element]:
-        result = await self.connection.request(
+        result = await self._request(
             url='/elements',
             method='POST',
             data={
@@ -214,7 +246,7 @@ class Session:
             cookie['secure'] = secure
         if expiry is not UNSET:
             cookie['expiry'] = expiry
-        await self.connection.request(
+        await self._request(
             url='/cookie',
             method='POST',
             data={
@@ -223,31 +255,31 @@ class Session:
         )
 
     async def get_cookie(self, name: str):
-        return await self.connection.request(
+        return await self._request(
             url=f'/cookie/{name}',
             method='GET'
         )
 
     async def get_all_cookies(self):
-        return await self.connection.request(
+        return await self._request(
             url='/cookie',
             method='GET'
         )
 
     async def delete_cookie(self, name: str):
-        await self.connection.request(
+        await self._request(
             url=f'/cookie/{name}',
             method='DELETE'
         )
 
     async def delete_all_cookies(self):
-        await self.connection.request(
+        await self._request(
             url='/cookie',
             method='DELETE'
         )
 
     async def execute_script(self, script: str, *args: Any):
-        return await self.connection.request(
+        return await self._request(
             url='/execute/sync',
             method='POST',
             data={
@@ -257,7 +289,7 @@ class Session:
         )
 
     async def set_window_size(self, width: int, height: int, handle: str='current'):
-        return await self.connection.request(
+        return await self._request(
             url='/window/rect',
             method='POST',
             data={
@@ -268,7 +300,7 @@ class Session:
         )
 
     async def get_window_size(self, handle: str='current') -> Tuple[int, int]:
-        return await self.connection.request(
+        return await self._request(
             url='/window/rect',
             method='GET',
             data={
@@ -277,13 +309,13 @@ class Session:
         )
 
     async def get_alert_text(self) -> str:
-        return await self.connection.request(
+        return await self._request(
             url='/alert/text',
             method='GET'
         )
 
     async def send_alert_text(self, value: str):
-        return await self.connection.request(
+        return await self._request(
             url='/alert/text',
             method='POST',
             data={
@@ -292,32 +324,32 @@ class Session:
         )
 
     async def dismiss_alert(self):
-        return await self.connection.request(
+        return await self._request(
             url='/alert/dismiss',
             method='POST'
         )
 
     async def accept_alert(self):
-        return await self.connection.request(
+        return await self._request(
             url='/alert/accept',
             method='POST'
         )
 
     async def perform_actions(self, actions: Dict[str, Any]):
-        return await self.connection.request(
+        return await self._request(
             url='/actions',
             method='POST',
             data=actions
         )
 
     async def get_screenshot(self) -> BytesIO:
-        return BytesIO(base64.b64decode(await self.connection.request(
+        return BytesIO(base64.b64decode(await self._request(
             url='/screenshot',
             method='GET'
         )))
 
     async def close(self):
-        await self.connection.request(
+        await self._request(
             url='',
             method='DELETE'
         )
@@ -330,9 +362,15 @@ class Session:
         )
 
 
-class CompatElement(Element):
+class CompatRequestHelpers(RequestHelpers):
+    def _check_response_error(self, status: int, data: Any):
+        if 'status' in data and data['status'] != 0:
+            errors.raise_exception(data, status)
+
+
+class CompatElement(CompatRequestHelpers, Element):
     async def get_rect(self):
-        location = await self.connection.request(
+        location = await self._request(
             url='/location',
             method='GET'
         )
@@ -341,12 +379,12 @@ class CompatElement(Element):
         return Rect(location['x'], location['y'], px_to_int(width), px_to_int(height))
 
 
-class CompatSession(Session):
+class CompatSession(CompatRequestHelpers, Session):
     element_class = CompatElement
 
     async def set_window_size(self, width: int, height: int,
                               handle: str = 'current'):
-        return await self.connection.request(
+        return await self._request(
             url=f'/window/{handle}/size',
             method='POST',
             data={
@@ -356,13 +394,13 @@ class CompatSession(Session):
         )
 
     async def get_window_size(self, handle: str = 'current'):
-        return await self.connection.request(
+        return await self._request(
             url=f'/window/{handle}/size',
             method='GET'
         )
 
     async def execute_script(self, script, *args):
-        return await self.connection.request(
+        return await self._request(
             url='/execute',
             method='POST',
             data={
@@ -373,14 +411,14 @@ class CompatSession(Session):
 
     async def perform_actions(self, actions: Dict[str, Any]):
         for url, method, data in transform_legacy_actions(actions['actions']):
-            await self.connection.request(
+            await self._request(
                 url=url,
                 method=method,
                 data=data,
             )
 
     async def get_screenshot(self) -> BytesIO:
-        return BytesIO(base64.b64decode(await self.connection.request(
+        return BytesIO(base64.b64decode(await self._request(
             url='/screenshot',
             method='GET'
         )))
@@ -407,9 +445,9 @@ def _pointer_move(device, action):
             'xoffset': action['x'],
             'yoffset': action['y'],
         }
-    elif WEB_ELEMENT in origin:
+    elif constants.WEB_ELEMENT in origin:
         data = {
-            'element': origin[WEB_ELEMENT],
+            'element': origin[constants.WEB_ELEMENT],
         }
     else:
         raise OperationNotSupported(f'Cannot move using origin {origin}')

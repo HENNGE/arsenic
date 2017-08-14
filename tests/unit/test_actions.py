@@ -1,8 +1,8 @@
 from operator import itemgetter
 
 from arsenic.actions import Mouse, Touch, chain
-from arsenic.connection import WEB_ELEMENT
 from arsenic.session import Element
+from arsenic import constants
 
 
 ELEMENT_ONE = Element('1', None, None)
@@ -31,7 +31,7 @@ def test_drag_n_drop():
                         'type': 'pointerMove',
                         'duration': 250,
                         'origin': {
-                            WEB_ELEMENT: '1'
+                            constants.WEB_ELEMENT: '1'
                         },
                         'x': 0,
                         'y': 0
@@ -81,7 +81,7 @@ def test_two_finger():
                     'type': 'pointerMove',
                     'duration': 250,
                     'origin': {
-                        WEB_ELEMENT: '1'
+                        constants.WEB_ELEMENT: '1'
                     },
                     'x': 0,
                     'y': 0
@@ -113,7 +113,7 @@ def test_two_finger():
                     'type': 'pointerMove',
                     'duration': 250,
                     'origin': {
-                        WEB_ELEMENT: '2'
+                        constants.WEB_ELEMENT: '2'
                     },
                     'x': 0,
                     'y': 0
@@ -126,7 +126,7 @@ def test_two_finger():
                     'type': 'pointerMove',
                     'duration': 250,
                     'origin': {
-                        WEB_ELEMENT: '3'
+                        constants.WEB_ELEMENT: '3'
                     },
                     'x': 0,
                     'y': 0

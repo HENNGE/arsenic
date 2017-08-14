@@ -73,31 +73,39 @@ class BrowserStackLocal:
 
 
 @pytest.fixture()
-def session_context(web_app, request):
+def service():
     service = get_instance(os.environ['ARSENIC_SERVICE'], services)
-    browser = get_instance(os.environ['ARSENIC_BROWSER'], browsers)
-    base_url = os.environ.get('ARSENIC_BASE_URL', web_app)
     if os.environ.get('BROWSERSTACK_LOCAL_IDENTIFIER', None):
         if not os.environ.get('BROWSERSTACK_API_KEY', False):
             raise pytest.skip('BROWSERSTACK_API_KEY not set')
         service = BrowserStackLocal(service)
-        browser.capabilities['name'] = request.node.name
-    return BrowserContext(
-        service=service,
-        browser=browser,
-        base_url=base_url
-    )
+    return service
 
 
 @pytest.fixture()
-async def session(session_context):
+def browser(web_app, request):
+    browser = get_instance(os.environ['ARSENIC_BROWSER'], browsers)
+    if os.environ.get('BROWSERSTACK_LOCAL_IDENTIFIER', None):
+        if not os.environ.get('BROWSERSTACK_API_KEY', False):
+            raise pytest.skip('BROWSERSTACK_API_KEY not set')
+        browser.capabilities['name'] = request.node.name
+    return browser
+
+
+@pytest.fixture()
+def base_url(web_app):
+    return os.environ.get('ARSENIC_BASE_URL', web_app)
+
+
+@pytest.fixture()
+async def session(service, browser, base_url):
     session = await start_session(
-        session_context.service,
-        session_context.browser,
-        bind=session_context.base_url
+        service,
+        browser,
+        bind=base_url
     )
-    session.browser = session_context.browser
-    session.service = session_context.service
+    session.browser = browser
+    session.service = service
     try:
         yield session
     finally:

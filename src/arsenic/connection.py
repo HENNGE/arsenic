@@ -5,38 +5,15 @@ from functools import wraps
 from io import BytesIO
 from json import JSONDecodeError
 from pathlib import Path
-from typing import Any
+from typing import Any, Tuple
 from urllib.parse import urlparse, urlunparse
-from zipfile import ZipFile, ZIP_DEFLATED
+from zipfile import ZIP_DEFLATED, ZipFile
 
-from aiohttp import ClientSession, ClientResponse
+from aiohttp import ClientResponse, ClientSession
 from structlog import get_logger
-
-from arsenic import errors
-
-
-WEB_ELEMENT = 'element-6066-11e4-a52e-4f735466cecf'
 
 
 log = get_logger()
-
-
-def unwrap(value):
-    """
-    Unwrap a value returned from a webdriver. Specifically this means trying to
-    extract the element ID of a web element or a list of web elements.
-    """
-    if isinstance(value, dict) and ('ELEMENT' in value or WEB_ELEMENT in value):
-        wrapped_id = value.get('ELEMENT', None)
-        if wrapped_id:
-            return value['ELEMENT']
-        else:
-            return value[WEB_ELEMENT]
-
-    elif isinstance(value, list):
-        return list(unwrap(item) for item in value)
-    else:
-        return value
 
 
 def wrap_screen(data):
@@ -70,7 +47,7 @@ class Connection:
         self.prefix = prefix
 
     @ensure_task
-    async def request(self, *, url: str, method: str, data=None, raw=False):
+    async def request(self, *, url: str, method: str, data=None) -> Tuple[int, Any]:
         if data is None:
             data = {}
         if method not in {'POST', 'PUT'}:
@@ -95,11 +72,7 @@ class Connection:
             }
         wrap_screen(data)
         log.info('response', url=strip_auth(full_url), method=method, body=body, response=response, data=data)
-        errors.check_response(response.status, data)
-        if raw:
-            return data
-        if data:
-            return unwrap(data.get('value', None))
+        return response.status, data
 
     async def upload_file(self, path: Path) -> Path:
         log.info('upload-file', path=path, resolved_path=path)

@@ -69,23 +69,22 @@ InvalidSelector = create('invalid selector', 32)
 MoveTargetOutOfBounds = create('move target out of bounds', 34)
 
 
-def check_response(status: int, data: Dict[str, Any]):
-    if status >= 400:
-        error = None
-        if 'status' in data:
-            error = data['status']
-        elif 'error' in data:
-            error = data['error']
-        elif 'state' in data:
-            error = data['state']
+def raise_exception(data: Dict[str, Any], status: int):
+    error = None
+    if 'status' in data:
+        error = data['status']
+    elif 'error' in data:
+        error = data['error']
+    elif 'state' in data:
+        error = data['state']
 
-        if 'value' in data:
-            data = data['value']
-        if error is None and 'error' in data:
-            error = data['error']
-        message = data.get('message', None)
-        stacktrace = data.get('stacktrace', None)
-        screen = data.get('screen', None)
-        exception_class = get(error)
-        log.error('error', type=exception_class, message=message, stacktrace=stacktrace, data=data, status=status)
-        raise exception_class(message, screen, stacktrace)
+    if 'value' in data and isinstance(data['value'], dict):
+        data = data['value']
+    if error is None and 'error' in data:
+        error = data['error']
+    message = data.get('message', None)
+    stacktrace = data.get('stacktrace', None)
+    screen = data.get('screen', None)
+    exception_class = get(error)
+    log.error('error', type=exception_class, message=message, stacktrace=stacktrace, data=data, status=status)
+    raise exception_class(message, screen, stacktrace)

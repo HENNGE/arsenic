@@ -4,7 +4,7 @@ from typing import Sequence, Any, Iterator, List, Dict, Optional
 
 import attr
 
-from arsenic.connection import WEB_ELEMENT
+from arsenic import constants
 from arsenic.session import Element
 
 
@@ -93,7 +93,7 @@ class Pointer(Device, metaclass=abc.ABCMeta):
         return self._tick(
             type='pointerMove',
             duration=duration,
-            origin={WEB_ELEMENT: element.id},
+            origin={constants.WEB_ELEMENT: element.id},
             x=0,
             y=0,
         )
