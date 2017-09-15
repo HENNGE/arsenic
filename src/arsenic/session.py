@@ -173,13 +173,17 @@ class Session(RequestHelpers):
         self.wait = wait
         self.driver = driver
 
+    async def request(self, url: str, method: str='GET',
+                      data: Dict[str, Any]=UNSET):
+        return await self._request(url=url, method=method, data=data)
+
     async def get(self, url: str):
         await self._request(
             url='/url',
             method='POST',
             data={
                 'url': self.bind + url
-            }
+                }
         )
 
     async def get_url(self):
@@ -361,6 +365,26 @@ class Session(RequestHelpers):
             self
         )
 
+    async def get_window_handles(self):
+        return await self._request(
+            url='/window/handles',
+            method='GET'
+        )
+
+    async def get_window_handle(self):
+        return await self._request(
+            url='/window',
+            method='GET'
+        )
+
+    async def switch_to_window(self, handle):
+        return await self._request(
+            url='/window',
+            method='POST',
+            data={'handle': handle,
+                  'name': handle}
+        )
+
 
 class CompatRequestHelpers(RequestHelpers):
     def _check_response_error(self, status: int, data: Any):
@@ -396,6 +420,18 @@ class CompatSession(CompatRequestHelpers, Session):
     async def get_window_size(self, handle: str = 'current'):
         return await self._request(
             url=f'/window/{handle}/size',
+            method='GET'
+        )
+
+    async def get_window_handles(self):
+        return await self._request(
+            url='/window_handles',
+            method='GET'
+        )
+
+    async def get_window_handle(self):
+        return await self._request(
+            url='/window_handle',
             method='GET'
         )
 
