@@ -14,6 +14,12 @@ jobs:
       - run: docker-compose pull
       - run: docker-compose build
       - run:
+          name: Build unit tests
+          command: |
+            docker-compose \
+              build \
+              test-unit
+      - run:
           name: Run unit tests
           command: |
             docker-compose \
@@ -22,6 +28,12 @@ jobs:
               -e SPHINXBUILD=/code/test-env/bin/sphinx-build \
               --rm \
               test-unit
+      - run:
+          name: Build phantomjs tests
+          command: |
+            docker-compose \
+              build \
+              test-phantomjs
       - run:
           name: Run phantomjs tests
           command: |
@@ -32,6 +44,12 @@ jobs:
               --rm \
               test-phantomjs
       - run:
+          name: Build geckodriver tests
+          command: |
+            docker-compose \
+              build \
+              test-geckodriver
+      - run:
           name: Run geckodriver tests
           command: |
             docker-compose \
@@ -41,6 +59,12 @@ jobs:
               --rm \
               test-geckodriver
       - run:
+          name: Build chromedriver tests
+          command: |
+            docker-compose \
+              build \
+              test-chromedriver
+      - run:
           name: Run chromedriver tests
           command: |
             docker-compose \
@@ -49,6 +73,12 @@ jobs:
               -e ARSENIC_BROWSER=Chrome?chromeOptions=%7B%22args%22%3A+%5B%22--headless%22%2C+%22--disable-gpu%22%2C+%22--no-sandbox%22%5D%7D \
               --rm \
               test-chromedriver
+      - run:
+          name: Build browserstack-ie tests
+          command: |
+            docker-compose \
+              build \
+              test-browserstack
       - run:
           name: Run browserstack-ie tests
           command: |
@@ -77,6 +107,12 @@ jobs:
           exclusive: true
       - checkout
       - run:
+          name: Build unit tests
+          command: |
+            docker-compose \
+              build \
+              test-unit
+      - run:
           name: Run unit tests
           command: |
             docker-compose \
@@ -92,6 +128,12 @@ jobs:
           reusable: true
           exclusive: true
       - checkout
+      - run:
+          name: Build phantomjs tests
+          command: |
+            docker-compose \
+              build \
+              test-phantomjs
       - run:
           name: Run phantomjs tests
           command: |
@@ -109,6 +151,12 @@ jobs:
           exclusive: true
       - checkout
       - run:
+          name: Build geckodriver tests
+          command: |
+            docker-compose \
+              build \
+              test-geckodriver
+      - run:
           name: Run geckodriver tests
           command: |
             docker-compose \
@@ -125,6 +173,12 @@ jobs:
           exclusive: true
       - checkout
       - run:
+          name: Build chromedriver tests
+          command: |
+            docker-compose \
+              build \
+              test-chromedriver
+      - run:
           name: Run chromedriver tests
           command: |
             docker-compose \
@@ -140,6 +194,12 @@ jobs:
           reusable: true
           exclusive: true
       - checkout
+      - run:
+          name: Build browserstack-ie tests
+          command: |
+            docker-compose \
+              build \
+              test-browserstack
       - run:
           name: Run browserstack-ie tests
           command: |

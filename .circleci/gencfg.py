@@ -91,6 +91,12 @@ def _build_command(name, service, env):
     # use f-strings everywhere for nice indent
     service = service or f'test-{name}'
     yield f'      - run:'
+    yield f'          name: Build {name} tests'
+    yield f'          command: |'
+    yield f'            docker-compose \\'
+    yield f'              build \\'
+    yield f'              {service}'
+    yield f'      - run:'
     yield f'          name: Run {name} tests'
     yield f'          command: |'
     yield f'            docker-compose \\'
