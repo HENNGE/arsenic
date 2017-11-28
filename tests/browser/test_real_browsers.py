@@ -176,6 +176,8 @@ async def test_file_upload(session, tmpdir):
 
 
 async def test_change_window(session):
+    if isinstance(session, CompatSession):
+        raise pytest.skip('not supported in compat session at the moment')
     handles = await session.get_window_handles()
     assert len(handles) == 1
     for i in range(4):
