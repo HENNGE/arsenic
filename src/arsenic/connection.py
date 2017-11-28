@@ -6,11 +6,13 @@ from io import BytesIO
 from json import JSONDecodeError
 from pathlib import Path
 from typing import Any, Tuple
-from urllib.parse import urlparse, urlunparse
+from urllib.parse import urlparse, urlunparse, unwrap
 from zipfile import ZIP_DEFLATED, ZipFile
 
 from aiohttp import ClientResponse, ClientSession
 from structlog import get_logger
+
+from arsenic import errors, constants
 
 
 log = get_logger()
@@ -24,6 +26,26 @@ def wrap_screen(data):
     """
     if isinstance(data, dict) and 'value' in data and isinstance(data['value'], dict) and 'screen' in data['value'] and data['value']['screen']:
         data['value']['screen'] = BytesIO(base64.b64decode(data['value']['screen']))
+
+
+def check_response_error(status: int, data: Any) -> None:
+    if status >= 400:
+        errors.raise_exception(data, status)
+
+
+def unwrap(value):
+    if isinstance(value, dict) and (
+            'ELEMENT' in value or constants.WEB_ELEMENT in value):
+        wrapped_id = value.get('ELEMENT', None)
+        if wrapped_id:
+            return value['ELEMENT']
+        else:
+            return value[constants.WEB_ELEMENT]
+
+    elif isinstance(value, list):
+        return list(unwrap(item) for item in value)
+    else:
+        return value
 
 
 def ensure_task(func):
@@ -88,12 +110,14 @@ class RemoteConnection(Connection):
         with ZipFile(fobj, 'w', ZIP_DEFLATED) as zf:
             zf.write(path, path.name)
         content = base64.b64encode(fobj.getvalue()).decode('utf-8')
-        resolved = await self.request(
+        status, data = await self.request(
             url='/file',
             method='POST',
             data={
                 'file': content
             }
         )
-        log.info('upload-file', path=path, resolved_path=resolved)
-        return resolved
+        check_response_error(status, data)
+        value = unwrap(data)
+        log.info('upload-file', path=path, resolved_path=value)
+        return value

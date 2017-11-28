@@ -7,7 +7,7 @@ import attr
 import base64
 
 from arsenic import errors, constants
-from arsenic.connection import Connection
+from arsenic.connection import Connection, unwrap, check_response_error
 from arsenic.errors import NoSuchElement, OperationNotSupported
 from arsenic.utils import Rect, px_to_int
 
@@ -42,25 +42,14 @@ class RequestHelpers:
             return self._unwrap(data.get('value', None))
 
     def _check_response_error(self, status: int, data: Any) -> None:
-        if status >= 400:
-            errors.raise_exception(data, status)
+        check_response_error(status, data)
 
     def _unwrap(self, value):
         """
         Unwrap a value returned from a webdriver. Specifically this means trying to
         extract the element ID of a web element or a list of web elements.
         """
-        if isinstance(value, dict) and ('ELEMENT' in value or constants.WEB_ELEMENT in value):
-            wrapped_id = value.get('ELEMENT', None)
-            if wrapped_id:
-                return value['ELEMENT']
-            else:
-                return value[constants.WEB_ELEMENT]
-
-        elif isinstance(value, list):
-            return list(self._unwrap(item) for item in value)
-        else:
-            return value
+        return unwrap(value)
 
 
 class Element(RequestHelpers):
