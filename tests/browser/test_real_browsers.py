@@ -173,3 +173,24 @@ async def test_file_upload(session, tmpdir):
     await submit_input.click()
     contents_span = await session.wait_for_element(5, '#contents')
     assert payload == await contents_span.get_text()
+
+
+async def test_change_window(session):
+    handles = await session.get_window_handles()
+    assert len(handles) == 1
+    for i in range(4):
+        await session.execute_script("window.open();")
+    handles = await session.get_window_handles()
+    assert len(handles) == 5
+    await session.switch_to_window(handles[2])
+    current = await session.get_window_handle()
+    assert current == handles[2]
+
+
+async def test_request(session):
+    if session.browser.capabilities['browserName'] == 'phantomjs':
+        url = '/window_handles'
+    else:
+        url = '/window/handles'
+    handles = await session.request(url)
+    assert len(handles) == 1

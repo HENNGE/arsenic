@@ -87,7 +87,15 @@
     A webdriver session. You should not create instances of this class yourself,
     instead use :py:func:`arsenic.get_session` or :py:func:`arsenic.start_session`.
 
-    .. py:method:: get(url):
+   .. py:method:: request(url, method='GET', data=UNSET):
+
+        Coroutine to perform a direct webdriver request.
+
+        :param str url: URL to call.
+        :param str method: method to use
+        :param Dict[str, Any]: data to send
+
+   .. py:method:: get(url):
 
         Coroutine to navigate to a given url.
 
@@ -193,6 +201,25 @@
 
         :param str handle: ID of the window.
         :rtype: Tuple[int, int]
+
+    .. py:method:: get_window_handle()
+
+        Coroutine to get the handle of the current window
+
+        :rtype: str
+
+    .. py:method:: switch_to_window(handle)
+
+        Coroutine to set the handle of the current window
+
+        :param str handle: ID of the window.
+        :rtype: str
+
+    .. py:method:: get_window_handles()
+
+        Coroutine to get the handles of all windows
+
+        :rtype: List[str]
 
     .. py:method:: get_alert_text
 
