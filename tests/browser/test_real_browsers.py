@@ -1,7 +1,9 @@
+import secrets
 from contextlib import contextmanager
 
 import pytest
 from PIL import Image
+from pathlib import Path
 
 from arsenic.actions import Mouse, chain, Keyboard
 from arsenic.browsers import Firefox
@@ -157,3 +159,17 @@ async def test_get_rect(session):
     ele = await session.get_element('#rect')
     rect = await ele.get_rect()
     assert rect == Rect(0, 0, 100, 100)
+
+
+async def test_file_upload(session, tmpdir):
+    path = Path(str(tmpdir)) / 'file.txt'
+    payload = secrets.token_urlsafe()
+    with path.open('w') as fobj:
+        fobj.write(payload)
+    await session.get('/file/')
+    file_input = await session.wait_for_element(5, 'input[name="file"]')
+    await file_input.send_file(path)
+    submit_input = await session.get_element('input[type="submit"]')
+    await submit_input.click()
+    contents_span = await session.wait_for_element(5, '#contents')
+    assert payload == await contents_span.get_text()
