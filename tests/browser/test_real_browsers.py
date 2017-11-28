@@ -180,8 +180,14 @@ async def test_change_window(session):
     assert len(handles) == 1
     for i in range(4):
         await session.execute_script("window.open();")
-    handles = await session.get_window_handles()
-    assert len(handles) == 5
+
+    async def checker():
+        handles = await session.get_window_handles()
+        if len(handles) == 5:
+            return handles
+        return False
+
+    handles = await session.wait(5, checker)
     await session.switch_to_window(handles[2])
     current = await session.get_window_handle()
     assert current == handles[2]
