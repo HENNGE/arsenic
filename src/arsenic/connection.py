@@ -118,6 +118,6 @@ class RemoteConnection(Connection):
             }
         )
         check_response_error(status, data)
-        value = unwrap(data)
+        value = unwrap(data.get('value', None))
         log.info('upload-file', path=path, resolved_path=value)
         return Path(value)
