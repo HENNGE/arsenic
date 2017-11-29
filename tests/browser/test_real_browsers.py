@@ -1,7 +1,9 @@
+import secrets
 from contextlib import contextmanager
 
 import pytest
 from PIL import Image
+from pathlib import Path
 
 from arsenic.actions import Mouse, chain, Keyboard
 from arsenic.browsers import Firefox
@@ -159,13 +161,35 @@ async def test_get_rect(session):
     assert rect == Rect(0, 0, 100, 100)
 
 
+async def test_file_upload(session, tmpdir):
+    path = Path(str(tmpdir)) / 'file.txt'
+    payload = secrets.token_urlsafe()
+    with path.open('w') as fobj:
+        fobj.write(payload)
+    await session.get('/file/')
+    file_input = await session.wait_for_element(5, 'input[name="file"]')
+    await file_input.send_file(path)
+    submit_input = await session.get_element('input[type="submit"]')
+    await submit_input.click()
+    contents_span = await session.wait_for_element(5, '#contents')
+    assert payload == await contents_span.get_text()
+
+
 async def test_change_window(session):
+    if isinstance(session, CompatSession):
+        raise pytest.skip('not supported in compat session at the moment')
     handles = await session.get_window_handles()
     assert len(handles) == 1
     for i in range(4):
         await session.execute_script("window.open();")
-    handles = await session.get_window_handles()
-    assert len(handles) == 5
+
+    async def checker():
+        handles = await session.get_window_handles()
+        if len(handles) == 5:
+            return handles
+        return False
+
+    handles = await session.wait(5, checker)
     await session.switch_to_window(handles[2])
     current = await session.get_window_handle()
     assert current == handles[2]

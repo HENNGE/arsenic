@@ -9,8 +9,17 @@ TEMPLATES_DIR = Path(__file__).parent / 'templates'
 async def process_form(request):
     return {'value': (await request.post()).get('field')}
 
+
 async def process_cookies(request):
     return {'value': request.cookies.get('test', '')}
+
+
+async def process_file_form(request):
+    data = await request.post()
+    return {
+        'filename': data['file'].filename,
+        'contents': data['file'].file.read().decode('utf-8'),
+    }
 
 
 def render_view(jinja, template, process=None):
@@ -36,6 +45,8 @@ def build_app() -> Application:
     app.router.add_get('/cookie/', render_view(jinja, 'data.html', process_cookies))
     app.router.add_get('/actions/', render_view(jinja, 'actions.html'))
     app.router.add_get('/screenshot/', render_view(jinja, 'screenshot.html'))
+    app.router.add_get('/file/', render_view(jinja, 'file_form.html'))
+    app.router.add_post('/file/', render_view(jinja, 'file_data.html', process_file_form))
     return app
 
 
