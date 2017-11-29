@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 
 setup(
-    version='1.0.0.dev6',
+    version='1.0.0.dev7',
     name='arsenic',
     package_dir={'': 'src'},
     packages=find_packages(where='src'),
