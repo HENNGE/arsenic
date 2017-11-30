@@ -1,10 +1,6 @@
 Arsenic on Windows
 ##################
 
-While arsenic is not currently tested on Windows, it should work just fine, if
-you follow the steps below.
-
-
 Use ``ProactorEventLoop``
 *************************
 

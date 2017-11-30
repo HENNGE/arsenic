@@ -1,0 +1,16 @@
+build: false
+environment:
+  SPHINXBUILD: "C:\\Python36-x64\\Scripts\\sphinx-build.exe"
+  matrix:
+    - ARSENIC_SERVICE: Geckodriver
+      ARSENIC_BROWSER: Firefox
+    - ARSENIC_SERVICE: IEDriverServer
+      ARSENIC_BROWSER: InternetExplorer
+    - ARSENIC_SERVICE: Chromedriver
+      ARSENIC_BROWSER: Chrome
+install:
+  - "C:\\Python36-x64\\Scripts\\pip.exe install --upgrade pip setuptools wheel"
+  - "C:\\Python36-x64\\Scripts\\pip.exe install . -r tests\\browser\\requirements.txt -r tests\\unit\\requirements.txt"
+test_script:
+  - "C:\\Python36-x64\\Scripts\\pytest.exe --verbose tests"
+

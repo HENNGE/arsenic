@@ -72,6 +72,7 @@ async def subprocess_based_service(cmd: List[str],
             *cmd,
             stdout=log_file,
             stderr=log_file,
+            stdin=DEVNULL,
         )
         closers.append(partial(stop_process, process))
         session = ClientSession()
@@ -198,4 +199,18 @@ class PhantomJS(Service):
             [self.binary, f'--webdriver={port}'],
             f'http://localhost:{port}/wd/hub',
             self.log_file,
+        )
+
+
+@attr.s
+class IEDriverServer(Service):
+    log_file = attr.ib(default=sys.stdout)
+    binary = attr.ib(default='IEDriverServer.exe')
+
+    async def start(self):
+        port = free_port()
+        return await subprocess_based_service(
+            [self.binary, f'--port={port}'],
+            f'http://localhost:{port}',
+            self.log_file
         )
