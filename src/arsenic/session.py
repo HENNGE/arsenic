@@ -156,11 +156,12 @@ TWaiter = Callable[[int, TCallback], Awaitable[Any]]
 class Session(RequestHelpers):
     element_class = Element
 
-    def __init__(self, connection: Connection, wait: TWaiter, driver, bind: str=''):
+    def __init__(self, connection: Connection, wait: TWaiter, driver, browser, bind: str=''):
         self.connection = connection
         self.bind = bind
         self.wait = wait
         self.driver = driver
+        self.browser = browser
 
     async def request(self, url: str, method: str='GET',
                       data: Dict[str, Any]=UNSET):

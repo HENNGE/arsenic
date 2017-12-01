@@ -1,4 +1,6 @@
+aiohttp
+jinja2
 pytest
 pytest-asyncio
-jinja2
+sphinx
 pillow

@@ -3,7 +3,6 @@ from typing import Awaitable, Callable, List, Any, Union, Type
 
 import time
 
-from arsenic import errors
 from arsenic.browsers import Browser
 from arsenic.connection import Connection
 from arsenic.errors import ArsenicTimeout
@@ -53,6 +52,7 @@ class WebDriver:
             bind=bind,
             wait=self.wait,
             driver=self,
+            browser=browser,
         )
         session._check_response_error(status, response)
         return session

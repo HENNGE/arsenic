@@ -1,10 +1,13 @@
 import pytest
+import sys
 
 from arsenic.services import Geckodriver
 
-pytestmark = pytest.mark.asyncio
+pytestmark = [
+    pytest.mark.asyncio
+]
 
-
+@pytest.mark.skipif(sys.platform == 'win32', reason='Not supported on windows')
 async def test_geckodriver_version_ok(tmpdir):
     path = tmpdir.join(
         'geckodriver'
@@ -15,6 +18,7 @@ async def test_geckodriver_version_ok(tmpdir):
     await driver._check_version()
 
 
+@pytest.mark.skipif(sys.platform == 'win32', reason='Not supported on windows')
 async def test_geckodriver_version_bad(tmpdir):
     path = tmpdir.join(
         'geckodriver'
@@ -26,6 +30,7 @@ async def test_geckodriver_version_bad(tmpdir):
         await driver._check_version()
 
 
+@pytest.mark.skipif(sys.platform == 'win32', reason='Not supported on windows')
 async def test_geckodriver_version_ignore(tmpdir):
     path = tmpdir.join(
         'geckodriver'
