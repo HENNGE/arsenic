@@ -152,7 +152,9 @@ class Chromedriver(Service):
 
 
 def auth_or_string(value):
-    if isinstance(value, Auth):
+    if value is None:
+        return value
+    elif isinstance(value, Auth):
         return value
     elif isinstance(value, str) and value.count(':') == 1:
         username, password = value.split(':')

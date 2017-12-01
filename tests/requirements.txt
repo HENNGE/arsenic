@@ -1,0 +1,8 @@
+aiohttp
+jinja2
+pytest
+pytest-asyncio
+sphinx
+pillow
+pytest-cov
+asyncio-extras

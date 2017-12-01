@@ -1,24 +1,21 @@
 import secrets
-from contextlib import contextmanager
+from pathlib import Path
 
 import pytest
 from PIL import Image
-from pathlib import Path
 
-from arsenic.actions import Mouse, chain, Keyboard
+from arsenic.actions import Keyboard, Mouse, chain
 from arsenic.browsers import Firefox
-from arsenic.errors import OperationNotSupported, NoSuchElement
+from arsenic.errors import NoSuchElement, OperationNotSupported
 from arsenic.services import Remote
 from arsenic.session import CompatSession
 from arsenic.utils import Rect
+from .utils import null_context
 
 
-pytestmark = pytest.mark.asyncio
-
-
-@contextmanager
-def null_context():
-    yield
+pytestmark = [
+    pytest.mark.asyncio
+]
 
 
 async def test_get_page_source(session):
@@ -74,7 +71,7 @@ async def test_cookies(session):
 
 
 async def test_chained_actions(session):
-    if isinstance(session.browser, Firefox) and isinstance(session.service, Remote):
+    if isinstance(session.browser, Firefox) and isinstance(session.driver, Remote):
         pytest.xfail('remote firefox actions do not work')
 
     async def check(actions, expected):
@@ -85,16 +82,7 @@ async def test_chained_actions(session):
     await session.get('/actions/')
     output = await session.wait_for_element(5, '#output')
     assert '' == await output.get_text()
-    mouse = Mouse()
-    keyboard = Keyboard()
-    canvas = await session.get_element('#canvas')
-    ctx = (
-        pytest.raises(OperationNotSupported)
-        if
-        isinstance(session, CompatSession)
-        else
-        null_context
-    )
+
     await session.get('/actions/')
 
     output = await session.wait_for_element(5, '#output')
@@ -196,7 +184,7 @@ async def test_change_window(session):
 
 
 async def test_request(session):
-    if session.browser.capabilities['browserName'] == 'phantomjs':
+    if isinstance(session, CompatSession):
         url = '/window_handles'
     else:
         url = '/window/handles'

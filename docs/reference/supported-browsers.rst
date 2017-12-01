@@ -36,3 +36,16 @@ To use Google Chrome headless, use::
     })
     async with get_session(service, browser) as session:
         ...
+
+
+Headless Firefox
+****************
+
+To use Firefox headless, use::
+
+    service = services.Geckodriver()
+    browser = browsers.Firefox(firefoxOptions={
+        'args': ['-headless']
+    })
+    async with get_session(service, browser) as session:
+        ...
