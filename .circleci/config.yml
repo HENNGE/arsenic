@@ -9,7 +9,11 @@ jobs:
       - run: python3.6 -m venv test-env
       - run: test-env/bin/pip install -U pip setuptools wheel
       - run: test-env/bin/pip install . -r tests/requirements.txt
-      - run: test-env/bin/pytest --verbose
+      - run: test-env/bin/pytest --verbose --cov arsenic --cov-report html:/home/reports/coverage/ --junitxml /home/reports/junit.xml
+      - store_test_results:
+          path: /home/reports/junit.xml
+      - store_artifacts:
+          path: /home/reports/coverage/
     environment:
       - DOCS_DIR: "/home/docs/"
       - SPHINX_BUILD_BINARY: "test-env/bin/sphinx-build"
