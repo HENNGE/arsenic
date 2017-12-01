@@ -5,3 +5,4 @@ pytest-asyncio
 sphinx
 pillow
 pytest-cov
+asyncio-extras

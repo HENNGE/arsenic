@@ -2,17 +2,12 @@ import json
 import os
 from contextlib import contextmanager
 from subprocess import check_call
-from typing import (
-    Any, Awaitable, Callable, ContextManager, Dict, Optional, Tuple, Type,
-    AsyncContextManager,
-)
+from typing import (Any, AsyncContextManager, Callable, Dict, Optional, Type)
 
 import pytest
+from asyncio_extras import async_contextmanager
 
-from arsenic import (
-    Session, browsers, services, start_session, stop_session,
-    get_session,
-)
+from arsenic import (Session, browsers, get_session, services)
 from tests.utils import find_binary
 from .app import build_app
 from .utils import null_context
@@ -40,7 +35,7 @@ get_ff_session = local_session_factory(
     'geckodriver',
     services.Geckodriver,
     browsers.Firefox,
-    {'moz:firefoxOptions': {
+    {'firefoxOptions': {
         'args': ['-headless']
     }}
 )
@@ -85,7 +80,8 @@ def bsl_context():
         check_call(args + ['stop'])
 
 
-def get_remote_session(root_url: str):
+@async_contextmanager
+async def get_remote_session(root_url: str):
     if 'REMOTE_BROWSER' not in os.environ:
         raise pytest.skip('No remote browser configured (REMOTE_BROWSER)')
     if 'REMOTE_SERVICE' not in os.environ:
@@ -97,17 +93,19 @@ def get_remote_session(root_url: str):
     remote_browser = json.loads(os.environ['REMOTE_BROWSER'])
     browser_cls = getattr(browsers, remote_browser.pop('type'))
     with context():
-        return get_session(
+        async with get_session(
             services.Remote(url=os.environ['REMOTE_SERVICE']),
             browser_cls(**remote_browser),
             root_url
-        )
+        ) as session:
+            yield session
 
 
 @pytest.fixture(params=[
     get_ff_session,
     get_chrome_session,
     get_remote_session,
+    get_phantomjs_session,
 ], ids=lambda func: func.__name__[4:])
 async def session(root_url, request) -> Session:
     async with request.param(root_url) as session:
