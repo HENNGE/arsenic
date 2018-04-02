@@ -36,7 +36,7 @@ class AsyncioSubprocessImpl(BaseSubprocessImpl):
         process = await asyncio.create_subprocess_exec(
             *cmd,
             stdout=PIPE,
-            stderr=PIPE
+            stderr=PIPE,
             stdin=DEVNULL,
         )
         out, err = await process.communicate()
