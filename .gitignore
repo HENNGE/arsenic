@@ -6,3 +6,4 @@ geckodriver.log
 /docs/_build/
 /build/
 /dist/
+*~

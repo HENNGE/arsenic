@@ -1,36 +1,27 @@
 import pytest
+import sys
 
 from arsenic.services import Geckodriver
 
 pytestmark = pytest.mark.asyncio
 
 
-async def test_geckodriver_version_ok(tmpdir):
+@pytest.mark.parametrize('version,check,result', [
+    ('0.17', True, True),
+    ('0.16', True, False),
+    ('0.16', False, True),
+])
+async def test_geckodriver_version_ok(tmpdir, version, check, result):
+    if sys.platform == 'win32':
+        raise pytest.skip('not supported on win32')
     path = tmpdir.join(
         'geckodriver'
     )
-    path.write('#!/usr/bin/env python3.6\nprint("geckodriver 0.17")')
+    path.write(f'#!{sys.executable}\nprint("geckodriver {version}")')
     path.chmod(0o755)
-    driver = Geckodriver(binary=str(path))
-    await driver._check_version()
-
-
-async def test_geckodriver_version_bad(tmpdir):
-    path = tmpdir.join(
-        'geckodriver'
-    )
-    path.write('#!/usr/bin/env python3.6\nprint("geckodriver 0.16")')
-    path.chmod(0o755)
-    driver = Geckodriver(binary=str(path))
-    with pytest.raises(ValueError):
+    driver = Geckodriver(binary=str(path), version_check=check)
+    if result:
         await driver._check_version()
-
-
-async def test_geckodriver_version_ignore(tmpdir):
-    path = tmpdir.join(
-        'geckodriver'
-    )
-    path.write('#!/usr/bin/env python3.6\nprint("geckodriver 0.16")')
-    path.chmod(0o755)
-    driver = Geckodriver(binary=str(path), version_check=False)
-    await driver._check_version()
+    else:
+        with pytest.raises(ValueError):
+            await driver._check_version()

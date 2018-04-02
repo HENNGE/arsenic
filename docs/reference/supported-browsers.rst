@@ -22,6 +22,9 @@ Supported Browsers
    * - Google Chrome
      - 59
      - Chromedriver 2.321
+   * - Internet Explorer
+     - 11
+     - IEDriverServer
 
 
 Headless Google Chrome
