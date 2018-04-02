@@ -1,8 +1,6 @@
 import abc
 import asyncio
-import os
 import re
-from asyncio.subprocess import DEVNULL, PIPE
 from distutils.version import StrictVersion
 from functools import partial
 from typing import List, TextIO, Optional
@@ -12,21 +10,10 @@ import sys
 from aiohttp import ClientSession
 
 from arsenic.connection import Connection, RemoteConnection
+from arsenic.subprocess import get_subprocess_impl
 from arsenic.utils import free_port
 from arsenic.webdriver import WebDriver
 from arsenic.http import Auth, BasicAuth
-
-
-async def stop_process(process):
-    process.terminate()
-    try:
-        await asyncio.wait_for(process.communicate(), 1)
-    except asyncio.futures.TimeoutError:
-        process.kill()
-    try:
-        await asyncio.wait_for(process.communicate(), 1)
-    except asyncio.futures.TimeoutError:
-        pass
 
 
 def sync_factory(func):
@@ -39,41 +26,14 @@ async def tasked(coro):
     return await asyncio.get_event_loop().create_task(coro)
 
 
-def check_event_loop():
-    if sys.platform == 'win32' and isinstance(asyncio.get_event_loop(), asyncio.SelectorEventLoop):
-        raise ValueError(
-            'SelectorEventLoop is not supported on Windows, use asyncio.ProactorEventLoop instead.'
-        )
-
-
-async def run_subprocess(cmd: List[str]) -> str:
-    check_event_loop()
-    process = await asyncio.create_subprocess_exec(
-        *cmd,
-        stdout=PIPE,
-        stderr=PIPE
-    )
-    out, err = await process.communicate()
-    if process.returncode != 0:
-        raise Exception(err)
-    else:
-        return out.decode('utf-8')
-
-
 async def subprocess_based_service(cmd: List[str],
                                    service_url: str,
                                    log_file: TextIO) -> WebDriver:
-    check_event_loop()
     closers = []
     try:
-        if log_file is os.devnull:
-            log_file = DEVNULL
-        process = await asyncio.create_subprocess_exec(
-            *cmd,
-            stdout=log_file,
-            stderr=log_file,
-        )
-        closers.append(partial(stop_process, process))
+        impl = get_subprocess_impl()
+        process = await impl.start_process(cmd, log_file)
+        closers.append(partial(impl.stop_process, process))
         session = ClientSession()
         closers.append(sync_factory(session.close))
         count = 0
@@ -116,7 +76,8 @@ class Geckodriver(Service):
 
     async def _check_version(self):
         if self.version_check:
-            output = await run_subprocess([self.binary, '--version'])
+            impl = get_subprocess_impl()
+            output = await impl.run_process([self.binary, '--version'])
             match = self._version_re.search(output)
             if not match:
                 raise ValueError(
