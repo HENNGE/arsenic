@@ -39,7 +39,9 @@ async def test_start_stop_process(impl, unused_tcp_port):
     assert msg == b'hello'
     await impl.stop_process(proc)
     with pytest.raises(Exception):
-        await asyncio.open_connection('localhost', unused_tcp_port)
+        for _ in range(5):
+            await asyncio.open_connection('localhost', unused_tcp_port)
+            await asyncio.sleep(.5)
 
 
 def main(port):

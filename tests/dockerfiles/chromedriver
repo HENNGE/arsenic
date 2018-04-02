@@ -1,4 +1,4 @@
-FROM ubuntu:zesty
+FROM ubuntu:bionic
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -19,7 +19,7 @@ RUN apt-get update && \
   rm -rf /var/lib/apt/lists/*
 
 
-ARG CHROMEDRIVER_VERSION=2.32
+ARG CHROMEDRIVER_VERSION=2.37
 
 RUN wget --no-verbose -O /tmp/chromedriver.zip https://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip \
   && rm -rf /opt/chromedriver \
