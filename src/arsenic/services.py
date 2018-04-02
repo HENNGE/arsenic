@@ -16,12 +16,6 @@ from arsenic.webdriver import WebDriver
 from arsenic.http import Auth, BasicAuth
 
 
-def sync_factory(func):
-    async def sync():
-        func()
-    return sync
-
-
 async def tasked(coro):
     return await asyncio.get_event_loop().create_task(coro)
 
@@ -35,7 +29,7 @@ async def subprocess_based_service(cmd: List[str],
         process = await impl.start_process(cmd, log_file)
         closers.append(partial(impl.stop_process, process))
         session = ClientSession()
-        closers.append(sync_factory(session.close))
+        closers.append(session.close)
         count = 0
         while True:
             try:
@@ -140,7 +134,7 @@ class Remote(Service):
             headers.update(self.auth.get_headers())
         try:
             session = ClientSession(headers=headers)
-            closers.append(sync_factory(session.close))
+            closers.append(session.close)
             return WebDriver(RemoteConnection(session, self.url), closers)
         except:
             for closer in reversed(closers):
