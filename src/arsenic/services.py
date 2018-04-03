@@ -7,7 +7,7 @@ from typing import List, TextIO, Optional
 
 import attr
 import sys
-from aiohttp import ClientSession
+from aiohttp import ClientSession, ClientResponse
 
 from arsenic.connection import Connection, RemoteConnection
 from arsenic.subprocess import get_subprocess_impl
@@ -20,6 +20,11 @@ async def tasked(coro):
     return await asyncio.get_event_loop().create_task(coro)
 
 
+async def check_service_status(session: ClientSession, url: str) -> bool:
+    async with session.get(url + '/status') as response:
+        return 200 <= response.status < 300
+
+
 async def subprocess_based_service(cmd: List[str],
                                    service_url: str,
                                    log_file: TextIO) -> WebDriver:
@@ -27,17 +32,14 @@ async def subprocess_based_service(cmd: List[str],
     try:
         impl = get_subprocess_impl()
         process = await impl.start_process(cmd, log_file)
-        closers.append(partial(impl.stop_process, process))
+        closers.append(partial(impl.stop_process,process))
         session = ClientSession()
         closers.append(session.close)
         count = 0
         while True:
             try:
-                await tasked(session.request(
-                    url=service_url + '/status',
-                    method='GET'
-                ))
-                break
+                if await tasked(check_service_status(session, service_url)):
+                    break
             except:
                 # TODO: make this better
                 count += 1
@@ -166,7 +168,7 @@ class IEDriverServer(Service):
     async def start(self):
         port = free_port()
         return await subprocess_based_service(
-            [self.binary, f'--port={port}'],
+            [self.binary, f'/port={port}', '/log-level=DEBUG'],
             f'http://localhost:{port}',
             self.log_file
         )

@@ -39,7 +39,8 @@ class InternetExplorer(Browser):
     defaults = {
         'browserName': 'internet explorer',
         'version': '',
-        'platform': 'WINDOWS',
+        'platform': 'WINDOWS'
     }
+
 
 IE = InternetExplorer
