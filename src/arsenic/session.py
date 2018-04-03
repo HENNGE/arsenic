@@ -380,6 +380,8 @@ class CompatRequestHelpers(RequestHelpers):
     def _check_response_error(self, status: int, data: Any):
         if 'status' in data and data['status'] != 0:
             errors.raise_exception(data, status)
+        if status >= 400 and 'value' in data and 'error' in data['value']:
+            errors.raise_exception(data, status)
 
 
 class CompatElement(CompatRequestHelpers, Element):

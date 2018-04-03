@@ -16,4 +16,4 @@ DOCS_DIR = os.environ.get(
 def test_docs_build():
     binary = find_binary('sphinx-build')
     with TemporaryDirectory() as workspace:
-        subprocess.check_call([binary, '-M', 'html', DOCS_DIR, workspace])
+        subprocess.check_call([binary, '-M', 'html', str(DOCS_DIR), workspace])

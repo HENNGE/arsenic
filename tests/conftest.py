@@ -54,6 +54,12 @@ get_phantomjs_session = local_session_factory(
     services.PhantomJS,
     browsers.PhantomJS,
 )
+get_ie_session = local_session_factory(
+    'get_ie_session',
+    'IEDriverServer',
+    services.IEDriverServer,
+    browsers.InternetExplorer,
+)
 
 
 @contextmanager
@@ -106,6 +112,7 @@ async def get_remote_session(root_url: str):
     get_chrome_session,
     get_remote_session,
     get_phantomjs_session,
+    get_ie_session,
 ], ids=lambda func: func.__name__[4:])
 async def session(root_url, request) -> Session:
     async with request.param(root_url) as session:
