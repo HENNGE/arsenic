@@ -6,7 +6,7 @@ Internet Explorer 11
 
 If you're trying to run Internet Explorer 11 using IEDriverServer, you must configure your
 computer a certain way. A helper function :py:func:`arsenic.helpers.check_ie11_environment`
-is provided and a helper script ``arsenic-check-ie11`` can also be called from the command line.
+is provided and a helper script ``arsenic-check-ie11.exe`` can also be called from the command line.
 
 To manually check the environment, ensure the following are all true:
 
@@ -15,7 +15,8 @@ To manually check the environment, ensure the following are all true:
 * The *Zoom Level* of Internet Explorer must be set to *100%*.
 * The *Scale factor* in *Settings* -> *Display* must be set to *100*.
 
-All of these, except for the *Scale factor* can be set with ``arsenic-configure-ie11``. This will disable *Protected Mode* for all zones!
+All of these, except for the *Scale factor* can be set with ``arsenic-configure-ie11.exe``. This will disable
+*Protected Mode* for all zones! You may require elevated privileges to run this command.
 
 
 Explicitly specify binaries

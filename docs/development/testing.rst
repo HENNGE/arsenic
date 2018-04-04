@@ -39,6 +39,7 @@ specify the location of the drivers yourself via the following environment varia
 * ``GECKODRIVER_BINARY``: Path to the geckodriver
 * ``CHROMEDRIVER_BINARY``: Path to the chromedriver
 * ``PHANTOMJS_BINARY``: Path to phantomjs
+* ``IEDRIVERSERVER_BINARY``: Path to IEDriverServer.exe
 
 
 Only run tests on one browser
