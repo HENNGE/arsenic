@@ -9,7 +9,12 @@ jobs:
       - run: python3.6 -m venv test-env
       - run: test-env/bin/pip install -U pip setuptools wheel
       - run: test-env/bin/pip install . -r tests/requirements.txt
-      - run: REMOTE_SERVICE="http://${BROWSERSTACK_USERNAME}:${BROWSERSTACK_API_KEY}@hub.browserstack.com:80/wd/hub" REMOTE_BROWSER="{\"version\": \"11.0\", \"resolution\": \"1024x768\", \"os_version\": \"7\", \"browser_version\": \"11.0\", \"browserstack.localIdentifier\": \"${CIRCLE_SHA1}\", \"os\": \"Windows\", \"browser\": \"IE\", \"project\": \"arsenic\", \"build\": \"${CIRCLE_SHA1}-${CIRCLE_BUILD_NUM}-IE\", \"type\": \"InternetExplorer\"}" test-env/bin/pytest --verbose --cov arsenic --cov-report html:/home/reports/coverage/ --junitxml /home/reports/junit.xml
+      - run:
+          name: "Run Tests"
+          command: |
+            export REMOTE_SERVICE="http://${BROWSERSTACK_USERNAME}:${BROWSERSTACK_API_KEY}@hub.browserstack.com:80/wd/hub"
+            export REMOTE_BROWSER="{\"version\": \"11.0\", \"resolution\": \"1024x768\", \"os_version\": \"7\", \"browser_version\": \"11.0\", \"browserstack.localIdentifier\": \"${CIRCLE_SHA1}\", \"os\": \"Windows\", \"browser\": \"IE\", \"project\": \"arsenic\", \"build\": \"${CIRCLE_SHA1}-${CIRCLE_BUILD_NUM}-IE\", \"type\": \"InternetExplorer\"}"
+            test-env/bin/pytest --verbose --cov arsenic --cov-report html:/home/reports/coverage/ --junitxml /home/reports/junit.xml
       - store_test_results:
           path: /home/reports/junit.xml
       - store_artifacts:
