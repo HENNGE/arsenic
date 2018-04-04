@@ -21,7 +21,7 @@ RUN apt-get update && \
   rm -rf /var/lib/apt/lists/*
 
 ARG GECKODRIVER_VERSION=0.20.0
-ARG CHROMEDRIVER_VERSION=2.33
+ARG CHROMEDRIVER_VERSION=2.37
 ARG PHANTOMJS_VERSION=phantomjs-1.9.8-linux-x86_64
 
 RUN wget --no-verbose -O /tmp/chromedriver.zip https://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip \
