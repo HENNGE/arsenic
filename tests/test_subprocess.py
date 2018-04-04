@@ -12,6 +12,18 @@ pytestmark = [
 ]
 
 
+available_loops = [asyncio.SelectorEventLoop]
+if sys.platform == 'win32':
+    available_loops.append(asyncio.ProactorEventLoop)
+
+
+@pytest.fixture(params=available_loops)
+def event_loop(request):
+    loop = request.param()
+    yield loop
+    loop.close()
+
+
 @pytest.fixture(params=[ThreadedSubprocessImpl, AsyncioSubprocessImpl])
 async def impl(event_loop, request):
     if sys.platform == 'win32':
