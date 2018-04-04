@@ -116,7 +116,7 @@ else:
     def configure_ie11_environment(protected_mode):
         for key, subkey, attribute, value, value_type in KEYS:
             try:
-                regkey = winreg.OpenKey(key, subkey, access=winreg.KEY_WRITE)
+                regkey = winreg.OpenKey(key, subkey, access=winreg.KEY_SET_VALUE)
             except OSError:
                 regkey = winreg.CreateKey(key, subkey)
             try:
@@ -126,7 +126,7 @@ else:
                 winreg.CloseKey(regkey)
         for key, subkey, attribute, value_type in PROTECTION_MODES:
             try:
-                regkey = winreg.OpenKey(key, subkey, access=winreg.KEY_WRITE)
+                regkey = winreg.OpenKey(key, subkey, access=winreg.KEY_SET_VALUE)
             except OSError:
                 regkey = winreg.CreateKey(key, subkey)
             try:
