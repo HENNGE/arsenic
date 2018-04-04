@@ -35,7 +35,7 @@ get_ff_session = local_session_factory(
     'geckodriver',
     services.Geckodriver,
     browsers.Firefox,
-    {'firefoxOptions': {
+    {'moz:firefoxOptions': {
         'args': ['-headless']
     }}
 )
@@ -44,7 +44,7 @@ get_chrome_session = local_session_factory(
     'chromedriver',
     services.Chromedriver,
     browsers.Chrome,
-    {'chromeOptions': {
+    {'goog:chromeOptions': {
         'args': ['--headless', '--disable-gpu', '--no-sandbox']
     }}
 )
