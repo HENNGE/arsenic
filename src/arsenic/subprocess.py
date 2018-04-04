@@ -72,13 +72,15 @@ class ThreadedSubprocessImpl(BaseSubprocessImpl):
         return await asyncio.get_event_loop().run_in_executor(None, self._run_process, cmd)
 
     def _run_process(self, cmd):
-        return subprocess.check_output(cmd).decode('utf-8')
+        return subprocess.check_output(cmd, stderr=subprocess.DEVNULL, stdin=subprocess.DEVNULL).decode('utf-8')
 
     async def start_process(self, cmd: List[str], log_file):
+        if log_file is os.devnull:
+            log_file = subprocess.DEVNULL
         return await asyncio.get_event_loop().run_in_executor(None, self._start_process, cmd, log_file)
 
     def _start_process(self, cmd: List[str], log_file):
-        return subprocess.Popen(cmd, stdout=log_file, stderr=log_file)
+        return subprocess.Popen(cmd, stdout=log_file, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL)
 
     async def stop_process(self, process):
         return await asyncio.get_event_loop().run_in_executor(None, self._stop_process, process)
