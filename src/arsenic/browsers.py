@@ -35,7 +35,7 @@ class PhantomJS(Browser):
 
 
 class InternetExplorer(Browser):
-    session_class = CompatSession
+    session_class = Session
     defaults = {
         'browserName': 'internet explorer',
         'version': '',

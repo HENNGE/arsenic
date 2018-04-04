@@ -164,11 +164,12 @@ class PhantomJS(Service):
 class IEDriverServer(Service):
     log_file = attr.ib(default=sys.stdout)
     binary = attr.ib(default='IEDriverServer.exe')
+    log_level = attr.ib(default='FATAL')
 
     async def start(self):
         port = free_port()
         return await subprocess_based_service(
-            [self.binary, f'/port={port}', '/log-level=DEBUG'],
+            [self.binary, f'/port={port}', '/log-level={self.log_level}'],
             f'http://localhost:{port}',
             self.log_file
         )
