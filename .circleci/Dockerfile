@@ -20,7 +20,7 @@ RUN apt-get update && \
     google-chrome-stable && \
   rm -rf /var/lib/apt/lists/*
 
-ARG GECKODRIVER_VERSION=0.19.1
+ARG GECKODRIVER_VERSION=0.20.0
 ARG CHROMEDRIVER_VERSION=2.33
 ARG PHANTOMJS_VERSION=phantomjs-1.9.8-linux-x86_64
 
