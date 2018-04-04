@@ -53,6 +53,7 @@ class AsyncioSubprocessImpl(BaseSubprocessImpl):
             *cmd,
             stdout=log_file,
             stderr=log_file,
+            stdin=DEVNULL,
         )
 
     async def stop_process(self, process):

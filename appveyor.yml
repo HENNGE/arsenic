@@ -4,5 +4,6 @@ environment:
 install:
   - "C:\\Python36-x64\\Scripts\\pip.exe install . -r tests\\requirements.txt"
 test_script:
+  - "C:\\Python36-x64\\Scripts\\arsenic-check-ie11.exe"
   - "C:\\Python36-x64\\Scripts\\pytest.exe --verbose tests"
 
