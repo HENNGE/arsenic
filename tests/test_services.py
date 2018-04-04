@@ -19,5 +19,9 @@ async def test_geckodriver_version_ok(tmpdir, version, check, result):
     )
     path.write(f'#!{sys.executable}\nprint("geckodriver {version}")')
     path.chmod(0o755)
-    driver = Geckodriver(binary=str(path))
-    await driver._check_version()
+    driver = Geckodriver(binary=str(path), version_check=check)
+    if result:
+        await driver._check_version()
+    else:
+        with pytest.raises(ValueError):
+            await driver._check_version()
