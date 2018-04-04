@@ -13,7 +13,9 @@ To manually check the environment, ensure the following are all true:
 * The *Protected Mode* setting of all zones in *Internet Options* must be set to the same value.
 * *Enhanced Protected Mode* me *disabled*.
 * The *Zoom Level* of Internet Explorer must be set to *100%*.
-* The *Scale* factor in *Settings* -> *Display* must be set to *100*.
+* The *Scale factor* in *Settings* -> *Display* must be set to *100*.
+
+All of these, except for the *Scale factor* can be set with ``arsenic-configure-ie11``. This will disable *Protected Mode* for all zones!
 
 
 Explicitly specify binaries

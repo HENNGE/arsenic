@@ -1,6 +1,9 @@
 import sys
 if sys.platform != 'win32':
-    def check_ie11_environment():
+    def check_ie11_environment_cli():
+        pass
+
+    def configure_ie11_environment_cli():
         pass
 else:
     import ctypes
@@ -105,3 +108,31 @@ else:
         if ok:
             print('Environment looks okay')
         return ok
+
+    def check_ie11_environment_cli():
+        if not check_ie11_environment():
+            sys.exit(-1)
+
+    def configure_ie11_environment(protected_mode):
+        for key, subkey, attribute, value, value_type in KEYS:
+            try:
+                regkey = winreg.OpenKey(key, subkey, access=winreg.KEY_WRITE)
+            except OSError:
+                regkey = winreg.CreateKey(key, subkey)
+            try:
+                winreg.SetValueEx(regkey, attribute, 0, value_type, value)
+
+            finally:
+                winreg.CloseKey(regkey)
+        for key, subkey, attribute, value_type in PROTECTION_MODES:
+            try:
+                regkey = winreg.OpenKey(key, subkey, access=winreg.KEY_WRITE)
+            except OSError:
+                regkey = winreg.CreateKey(key, subkey)
+            try:
+                winreg.SetValueEx(regkey, attribute, 0, value_type, protected_mode)
+            finally:
+                winreg.CloseKey(regkey)
+
+    def configure_ie11_environment_cli():
+        configure_ie11_environment(0)
