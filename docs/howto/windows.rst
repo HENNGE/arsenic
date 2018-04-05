@@ -1,6 +1,8 @@
 Arsenic on Windows
 ##################
 
+.. _ie11:
+
 Internet Explorer 11
 ********************
 

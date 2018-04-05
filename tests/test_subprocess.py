@@ -13,8 +13,10 @@ pytestmark = [
 
 
 available_loops = [asyncio.SelectorEventLoop]
-if sys.platform == 'win32':
+try:
     available_loops.append(asyncio.ProactorEventLoop)
+except AttributeError:
+    pass
 
 
 @pytest.fixture(params=available_loops)

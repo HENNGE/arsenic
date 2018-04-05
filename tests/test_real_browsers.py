@@ -6,8 +6,8 @@ from PIL import Image
 
 from arsenic.actions import Keyboard, Mouse, chain
 from arsenic.browsers import Firefox
+from arsenic.connection import RemoteConnection
 from arsenic.errors import NoSuchElement, OperationNotSupported
-from arsenic.services import Remote
 from arsenic.session import CompatSession
 from arsenic.utils import Rect
 from .utils import null_context
@@ -71,8 +71,8 @@ async def test_cookies(session):
 
 
 async def test_chained_actions(session):
-    if isinstance(session.browser, Firefox) and isinstance(session.driver, Remote):
-        pytest.xfail('remote firefox actions do not work')
+    if isinstance(session.browser, Firefox) and isinstance(session.driver.connection, RemoteConnection):
+        raise pytest.skip('remote firefox actions do not work')
 
     async def check(actions, expected):
         await session.perform_actions(actions)
@@ -164,7 +164,7 @@ async def test_file_upload(session, tmpdir):
 
 
 async def test_change_window(session):
-    if isinstance(session, CompatSession):
+    if isinstance(session, CompatSession) or isinstance(session.driver.connection, RemoteConnection):
         raise pytest.skip('not supported in compat session at the moment')
     handles = await session.get_window_handles()
     assert len(handles) == 1

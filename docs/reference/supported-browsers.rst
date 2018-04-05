@@ -13,18 +13,25 @@ Supported Browsers
    * - Browser Name
      - Supported Versions
      - Supported Service
+     - OS
    * - Firefox
-     - 54.0
-     - Geckodriver 0.16.1
+     - 59
+     - Geckodriver 0.20.0
+     - Linux, macOS, Windows 10
    * - PhantomJS
      - 1.9.8
      - PhantomJS 1.9.8
+     - Linux, macOS, Windows 10
    * - Google Chrome
-     - 59
-     - Chromedriver 2.321
+     - 65
+     - Chromedriver 2.37
+     - Linux, macOS, Windows 10
    * - Internet Explorer
-     - 11
+     - 11 (See :ref:`ie11`)
      - IEDriverServer
+     - Windows 10
+
+Remote sessions are available via the :py:class:`arsenic.services.Remote` but not all APIs may be available.
 
 
 Headless Google Chrome
