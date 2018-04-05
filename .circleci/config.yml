@@ -14,6 +14,7 @@ jobs:
           command: |
             export REMOTE_SERVICE="http://${BROWSERSTACK_USERNAME}:${BROWSERSTACK_API_KEY}@hub.browserstack.com:80/wd/hub"
             export REMOTE_BROWSER="{\"resolution\": \"1024x768\", \"os_version\": \"10\", \"browserstack.localIdentifier\": \"${CIRCLE_SHA1}\", \"os\": \"Windows\", \"browser\": \"Chrome\", \"project\": \"arsenic\", \"build\": \"${CIRCLE_SHA1}-${CIRCLE_BUILD_NUM}-Chrome\", \"type\": \"Chrome\"}"
+            export BROWSERSTACK_LOCAL_IDENTIFIER="${CIRCLE_SHA1}"
             test-env/bin/pytest --verbose --cov arsenic --cov-report html:/home/reports/coverage/ --junitxml /home/reports/junit.xml
       - store_test_results:
           path: /home/reports/junit.xml
