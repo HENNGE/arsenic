@@ -3,10 +3,9 @@ from typing import Awaitable, Callable, List, Any, Union, Type
 
 import time
 
-from arsenic import errors
 from arsenic.browsers import Browser
 from arsenic.connection import Connection
-from arsenic.errors import ArsenicTimeout
+from arsenic.errors import ArsenicTimeout, SessionStartError
 from arsenic.session import Session
 
 
@@ -45,14 +44,24 @@ class WebDriver:
                 'desiredCapabilities': browser.capabilities
             },
         )
+        original_response = response
         if 'sessionId' not in response:
             response = response['value']
+        if 'sessionId' not in response:
+            if 'error' in original_response:
+                err_resp = original_response
+            elif 'error' in response:
+                err_resp = response
+            else:
+                raise SessionStartError('Unknown', 'Unknown', original_response)
+            raise SessionStartError(err_resp['error'], err_resp.get('message', ''), original_response)
         session_id = response['sessionId']
         session = browser.session_class(
             connection=self.connection.prefixed(f'/session/{session_id}'),
             bind=bind,
             wait=self.wait,
             driver=self,
+            browser=browser,
         )
         session._check_response_error(status, response)
         return session

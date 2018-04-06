@@ -77,24 +77,24 @@ class Connection:
         body = json.dumps(data) if data is not None else None
         full_url = self.prefix + url
         log.info('request', url=strip_auth(full_url), method=method, body=body)
-        response: ClientResponse = await self.session.request(
+        async with self.session.request(
             url=full_url,
             method=method,
             data=body
-        )
-        response_body = await response.read()
-        try:
-            data = json.loads(response_body)
-        except JSONDecodeError as exc:
-            log.error('json-decode', body=response_body)
-            data = {
-                'error': '!internal',
-                'message': str(exc),
-                'stacktrace': ''
-            }
-        wrap_screen(data)
-        log.info('response', url=strip_auth(full_url), method=method, body=body, response=response, data=data)
-        return response.status, data
+        ) as response:
+            response_body = await response.read()
+            try:
+                data = json.loads(response_body)
+            except JSONDecodeError as exc:
+                log.error('json-decode', body=response_body)
+                data = {
+                    'error': '!internal',
+                    'message': str(exc),
+                    'stacktrace': ''
+                }
+            wrap_screen(data)
+            log.info('response', url=strip_auth(full_url), method=method, body=body, response=response, data=data)
+            return response.status, data
 
     async def upload_file(self, path: Path) -> Path:
         log.info('upload-file', path=path, resolved_path=path)

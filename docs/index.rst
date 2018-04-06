@@ -50,6 +50,14 @@ You can find the code of arsenic on `Github`_ and `PyPI`_.
     reference/index
 
 
+.. toctree::
+    :maxdepth: 2
+    :caption: Development
+
+    development/testing
+
+
+
 Indices and tables
 ==================
 

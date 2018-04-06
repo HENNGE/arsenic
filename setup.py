@@ -12,6 +12,12 @@ setup(
         'aiohttp>=2',
     ],
     license='APLv2',
+    entry_points={
+        'console_scripts': [
+            'arsenic-check-ie11 = arsenic.helpers:check_ie11_environment_cli',
+            'arsenic-configure-ie11 = arsenic.helpers:configure_ie11_environment_cli',
+        ]
+    },
     classifiers=[
         'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: Apache Software License',

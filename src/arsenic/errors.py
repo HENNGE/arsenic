@@ -9,6 +9,14 @@ class ArsenicError(Exception):
     pass
 
 
+class SessionStartError(ArsenicError):
+    def __init__(self, error, message, response):
+        self.error = error
+        self.message = message
+        self.response = response
+        super().__init__(f'{error}: {message}')
+
+
 class OperationNotSupported(ArsenicError):
     pass
 

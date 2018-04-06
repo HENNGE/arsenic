@@ -156,11 +156,12 @@ TWaiter = Callable[[int, TCallback], Awaitable[Any]]
 class Session(RequestHelpers):
     element_class = Element
 
-    def __init__(self, connection: Connection, wait: TWaiter, driver, bind: str=''):
+    def __init__(self, connection: Connection, wait: TWaiter, driver, browser, bind: str=''):
         self.connection = connection
         self.bind = bind
         self.wait = wait
         self.driver = driver
+        self.browser = browser
 
     async def request(self, url: str, method: str='GET',
                       data: Dict[str, Any]=UNSET):
@@ -378,6 +379,8 @@ class Session(RequestHelpers):
 class CompatRequestHelpers(RequestHelpers):
     def _check_response_error(self, status: int, data: Any):
         if 'status' in data and data['status'] != 0:
+            errors.raise_exception(data, status)
+        if status >= 400 and 'value' in data and 'error' in data['value']:
             errors.raise_exception(data, status)
 
 

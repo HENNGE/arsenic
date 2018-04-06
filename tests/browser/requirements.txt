@@ -1,4 +1,0 @@
-pytest
-pytest-asyncio
-jinja2
-pillow

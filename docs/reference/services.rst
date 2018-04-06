@@ -72,3 +72,11 @@
 
     :param io.TextIO log_file: Log file to use.
     :param str binary: Path to the PhantomJS binary.
+
+
+.. py:class:: IEDriverServer(log_file=os.devnull, binary='IEDriverServer.exe')
+
+    Internet Explorer service.
+
+    :param io.TextIO log_file: Log file to use.
+    :param str binary: Path to the IEDriverServer binary.

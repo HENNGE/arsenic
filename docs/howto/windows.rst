@@ -1,16 +1,24 @@
 Arsenic on Windows
 ##################
 
-While arsenic is not currently tested on Windows, it should work just fine, if
-you follow the steps below.
+.. _ie11:
 
+Internet Explorer 11
+********************
 
-Use ``ProactorEventLoop``
-*************************
+If you're trying to run Internet Explorer 11 using IEDriverServer, you must configure your
+computer a certain way. A helper function :py:func:`arsenic.helpers.check_ie11_environment`
+is provided and a helper script ``arsenic-check-ie11.exe`` can also be called from the command line.
 
-Unless you're using the :py:class:`arsenic.services.Remote` service, you have to
-use the :py:class:`asyncio.ProactorEventLoop` event loop to run arsenic. See
-the `Python documentation`_ for more information.
+To manually check the environment, ensure the following are all true:
+
+* The *Protected Mode* setting of all zones in *Internet Options* must be set to the same value.
+* *Enhanced Protected Mode* me *disabled*.
+* The *Zoom Level* of Internet Explorer must be set to *100%*.
+* The *Scale factor* in *Settings* -> *Display* must be set to *100*.
+
+All of these, except for the *Scale factor* can be set with ``arsenic-configure-ie11.exe``. This will disable
+*Protected Mode* for all zones! You may require elevated privileges to run this command.
 
 
 Explicitly specify binaries
@@ -31,6 +39,3 @@ you have to instantiate your arsenic session like this::
         browser = browsers.Firefox()
         async with get_session(service, browser) as session:
             ...
-
-
-.. _Python documentation: https://docs.python.org/3/library/asyncio-eventloops.html#asyncio.ProactorEventLoop
