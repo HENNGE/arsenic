@@ -169,7 +169,7 @@ class IEDriverServer(Service):
     async def start(self):
         port = free_port()
         return await subprocess_based_service(
-            [self.binary, f'/port={port}', '/log-level={self.log_level}'],
+            [self.binary, f'/port={port}', f'/log-level={self.log_level}'],
             f'http://localhost:{port}',
             self.log_file
         )
