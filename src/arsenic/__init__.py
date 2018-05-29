@@ -20,11 +20,11 @@ class SessionContext:
         await stop_session(self.session)
 
 
-def get_session(service, browser, bind=''):
+def get_session(service, browser, bind=""):
     return SessionContext(service, browser, bind)
 
 
-async def start_session(service: Service, browser: Browser, bind=''):
+async def start_session(service: Service, browser: Browser, bind=""):
     driver = await service.start()
     return await driver.new_session(browser, bind=bind)
 
