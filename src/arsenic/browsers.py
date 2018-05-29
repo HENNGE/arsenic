@@ -11,35 +11,33 @@ class Browser:
 
 class Firefox(Browser):
     defaults = {
-        'browserName': 'firefox',
-        'marionette': True,
-        'acceptInsecureCerts': True,
+        "browserName": "firefox",
+        "marionette": True,
+        "acceptInsecureCerts": True,
     }
 
 
 class Chrome(Browser):
     session_class = CompatSession
-    defaults = {
-        'browserName': 'chrome',
-    }
+    defaults = {"browserName": "chrome"}
 
 
 class PhantomJS(Browser):
     session_class = CompatSession
     defaults = {
-        'browserName': 'phantomjs',
-        'version': '',
-        'platform': 'ANY',
-        'javascriptEnabled': True,
+        "browserName": "phantomjs",
+        "version": "",
+        "platform": "ANY",
+        "javascriptEnabled": True,
     }
 
 
 class InternetExplorer(Browser):
     session_class = Session
     defaults = {
-        'browserName': 'internet explorer',
-        'version': '',
-        'platform': 'WINDOWS'
+        "browserName": "internet explorer",
+        "version": "",
+        "platform": "WINDOWS",
     }
 
 

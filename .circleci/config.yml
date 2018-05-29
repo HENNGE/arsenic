@@ -10,6 +10,12 @@ jobs:
       - run: test-env/bin/pip install -U pip setuptools wheel
       - run: test-env/bin/pip install . -r tests/requirements.txt
       - run:
+          name: "Code Style Check"
+          command: |
+            export LC_ALL=C.UTF-8
+            export LANG=C.UTF-8
+            test-env/bin/black --check --line-length=88 --safe src tests setup.py
+      - run:
           name: "Run Tests"
           command: |
             export REMOTE_SERVICE="http://${BROWSERSTACK_USERNAME}:${BROWSERSTACK_API_KEY}@hub.browserstack.com:80/wd/hub"

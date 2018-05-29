@@ -6,3 +6,5 @@ sphinx
 pillow
 pytest-cov
 asyncio-extras
+pre-commit
+black
