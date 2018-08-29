@@ -88,6 +88,9 @@ class Geckodriver(Service):
                     f"`version_check` to `False`."
                 )
 
+    async def set_log_file(self, log_file):
+        self.log_file = log_file
+
     async def start(self):
         port = free_port()
         await self._check_version()
@@ -102,6 +105,9 @@ class Geckodriver(Service):
 class Chromedriver(Service):
     log_file = attr.ib(default=sys.stdout)
     binary = attr.ib(default="chromedriver")
+
+    async def set_log_file(self, log_file):
+        self.log_file = log_file
 
     async def start(self):
         port = free_port()
@@ -149,6 +155,9 @@ class PhantomJS(Service):
     log_file = attr.ib(default=sys.stdout)
     binary = attr.ib(default="phantomjs")
 
+    async def set_log_file(self, log_file):
+        self.log_file = log_file
+
     async def start(self):
         port = free_port()
         return await subprocess_based_service(
@@ -163,6 +172,9 @@ class IEDriverServer(Service):
     log_file = attr.ib(default=sys.stdout)
     binary = attr.ib(default="IEDriverServer.exe")
     log_level = attr.ib(default="FATAL")
+
+    async def set_log_file(self, log_file):
+        self.log_file = log_file
 
     async def start(self):
         port = free_port()
