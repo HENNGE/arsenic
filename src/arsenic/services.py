@@ -54,7 +54,6 @@ async def subprocess_based_service(
 
 
 class Service(metaclass=abc.ABCMeta):
-
     @abc.abstractmethod
     async def start(self) -> WebDriver:
         raise NotImplementedError()

@@ -15,7 +15,6 @@ class Action:
 
 
 class Tick:
-
     def __init__(self, *actions: Action):
         self.actions: Dict["Device", "Action"] = {
             action.source: action for action in actions
