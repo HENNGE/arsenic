@@ -56,7 +56,6 @@ def unwrap(value):
 
 
 def ensure_task(func):
-
     @wraps(func)
     async def wrapper(*args, **kwargs):
         return await asyncio.get_event_loop().create_task(func(*args, **kwargs))
@@ -75,7 +74,6 @@ def strip_auth(url: str) -> str:
 
 
 class Connection:
-
     def __init__(self, session: ClientSession, prefix: str):
         self.session = session
         self.prefix = prefix
@@ -118,7 +116,6 @@ class Connection:
 
 
 class RemoteConnection(Connection):
-
     async def upload_file(self, path: Path) -> Path:
         fobj = BytesIO()
         with ZipFile(fobj, "w", ZIP_DEFLATED) as zf:

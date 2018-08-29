@@ -10,7 +10,6 @@ from arsenic.session import Session
 
 
 class SessionContext:
-
     def __init__(self, driver: "WebDriver", browser: Browser, bind: str):
         self.driver = driver
         self.browser = browser
@@ -30,7 +29,6 @@ TClosers = List[Callable[..., Awaitable[None]]]
 
 
 class WebDriver:
-
     def __init__(self, connection: Connection, closers: TClosers):
         self.connection = connection
         self.closers = closers
