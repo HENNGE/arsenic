@@ -6,7 +6,6 @@ import attr
 
 
 class Auth(metaclass=abc.ABCMeta):
-
     @abc.abstractmethod
     def get_headers(self) -> Dict[str, str]:
         raise NotImplementedError()
