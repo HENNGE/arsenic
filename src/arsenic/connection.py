@@ -15,7 +15,7 @@ from structlog import get_logger
 from arsenic import errors, constants
 
 
-log = get_logger()
+
 
 
 def wrap_screen(data):
@@ -77,6 +77,7 @@ class Connection:
     def __init__(self, session: ClientSession, prefix: str):
         self.session = session
         self.prefix = prefix
+        self.log = get_logger()
 
     @ensure_task
     async def request(self, *, url: str, method: str, data=None) -> Tuple[int, Any]:
@@ -86,7 +87,7 @@ class Connection:
             data = None
         body = json.dumps(data) if data is not None else None
         full_url = self.prefix + url
-        log.info("request", url=strip_auth(full_url), method=method, body=body)
+        self.log.info("request", url=strip_auth(full_url), method=method, body=body)
         async with self.session.request(
             url=full_url, method=method, data=body
         ) as response:
@@ -94,10 +95,10 @@ class Connection:
             try:
                 data = json.loads(response_body)
             except JSONDecodeError as exc:
-                log.error("json-decode", body=response_body)
+                self.log.error("json-decode", body=response_body)
                 data = {"error": "!internal", "message": str(exc), "stacktrace": ""}
             wrap_screen(data)
-            log.info(
+            self.log.info(
                 "response",
                 url=strip_auth(full_url),
                 method=method,
@@ -108,7 +109,7 @@ class Connection:
             return response.status, data
 
     async def upload_file(self, path: Path) -> Path:
-        log.info("upload-file", path=path, resolved_path=path)
+        self.log.info("upload-file", path=path, resolved_path=path)
         return path
 
     def prefixed(self, prefix: str) -> "Connection":
@@ -126,5 +127,5 @@ class RemoteConnection(Connection):
         )
         check_response_error(status, data)
         value = unwrap(data.get("value", None))
-        log.info("upload-file", path=path, resolved_path=value)
+        self.log.info("upload-file", path=path, resolved_path=value)
         return Path(value)
