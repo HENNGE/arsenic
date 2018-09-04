@@ -15,9 +15,6 @@ from structlog import get_logger
 from arsenic import errors, constants
 
 
-
-
-
 def wrap_screen(data):
     """
     Data returned from a webdriver may contain a screen, which is a base64
