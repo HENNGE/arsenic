@@ -125,7 +125,7 @@ def auth_or_string(value):
 class Remote(Service):
     url: str = attr.ib()
     auth: Optional[Auth] = attr.ib(
-        default=None, convert=attr.converters.optional(auth_or_string)
+        default=None, converter=attr.converters.optional(auth_or_string)
     )
 
     async def start(self):
