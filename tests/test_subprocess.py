@@ -51,7 +51,7 @@ async def test_start_stop_process(impl, unused_tcp_port):
             reader, writer = await asyncio.open_connection("localhost", unused_tcp_port)
             break
         except:
-            await asyncio.sleep(.5)
+            await asyncio.sleep(0.5)
     else:
         raise Exception("could not connect")
     msg = await reader.readexactly(5)
@@ -60,7 +60,7 @@ async def test_start_stop_process(impl, unused_tcp_port):
     with pytest.raises(Exception):
         for _ in range(5):
             await asyncio.open_connection("localhost", unused_tcp_port)
-            await asyncio.sleep(.5)
+            await asyncio.sleep(0.5)
 
 
 def main(port):

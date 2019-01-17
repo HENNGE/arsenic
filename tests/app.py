@@ -23,7 +23,6 @@ async def process_file_form(request):
 
 
 def render_view(jinja, template, process=None):
-
     async def view(request):
         data = {}
         if process is not None:
