@@ -24,7 +24,6 @@ def check_event_loop():
 
 
 class BaseSubprocessImpl(metaclass=abc.ABCMeta):
-
     @abc.abstractmethod
     async def run_process(self, cmd: List[str]) -> str:
         raise NotImplementedError()
@@ -39,7 +38,6 @@ class BaseSubprocessImpl(metaclass=abc.ABCMeta):
 
 
 class AsyncioSubprocessImpl(BaseSubprocessImpl):
-
     async def run_process(self, cmd: List[str]) -> str:
         check_event_loop()
         process = await asyncio.create_subprocess_exec(
@@ -72,7 +70,6 @@ class AsyncioSubprocessImpl(BaseSubprocessImpl):
 
 
 class ThreadedSubprocessImpl(BaseSubprocessImpl):
-
     async def run_process(self, cmd: List[str]):
         return await asyncio.get_event_loop().run_in_executor(
             None, self._run_process, cmd

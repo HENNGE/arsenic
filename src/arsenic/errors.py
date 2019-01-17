@@ -10,7 +10,6 @@ class ArsenicError(Exception):
 
 
 class SessionStartError(ArsenicError):
-
     def __init__(self, error, message, response):
         self.error = error
         self.message = message
@@ -23,7 +22,6 @@ class OperationNotSupported(ArsenicError):
 
 
 class WebdriverError(ArsenicError):
-
     def __init__(self, message, screen, stacktrace):
         self.message = message
         self.screen = screen

@@ -33,7 +33,6 @@ def escape_value(value: str) -> str:
 
 
 class RequestHelpers:
-
     async def _request(self, *, url: str, method: str, data=None, raw=False):
         status, data = await self.connection.request(url=url, method=method, data=data)
         self._check_response_error(status, data)
@@ -54,7 +53,6 @@ class RequestHelpers:
 
 
 class Element(RequestHelpers):
-
     def __init__(self, id: str, connection: Connection, session: "Session"):
         self.id = id
         self.connection = connection
@@ -168,7 +166,6 @@ class Session(RequestHelpers):
         )
 
     async def wait_for_element_gone(self, timeout: int, selector: str):
-
         async def callback():
             try:
                 await self.get_element(selector)
@@ -274,7 +271,6 @@ class Session(RequestHelpers):
 
 
 class CompatRequestHelpers(RequestHelpers):
-
     def _check_response_error(self, status: int, data: Any):
         if "status" in data and data["status"] != 0:
             errors.raise_exception(data, status)
@@ -283,7 +279,6 @@ class CompatRequestHelpers(RequestHelpers):
 
 
 class CompatElement(CompatRequestHelpers, Element):
-
     async def get_rect(self):
         location = await self._request(url="/location", method="GET")
         width = await self.get_css_value("width")
