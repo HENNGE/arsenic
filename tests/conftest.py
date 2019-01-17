@@ -6,6 +6,7 @@ from typing import Any, AsyncContextManager, Callable, Dict, Optional, Type
 
 import pytest
 from asyncio_extras import async_contextmanager
+from aiohttp.web import TCPSite, AppRunner
 
 from arsenic import Session, browsers, get_session, services
 from tests.utils import find_binary
@@ -122,16 +123,14 @@ async def session(root_url, request) -> Session:
 @pytest.fixture
 async def root_url(event_loop):
     application = build_app()
-    handler = application.make_handler()
-    server = await event_loop.create_server(handler, "127.0.0.1", 0)
+    runner = AppRunner(application)
+    await runner.setup()
+    site = TCPSite(runner, "127.0.0.1", 0)
+    await site.start()
     try:
-        for socket in server.sockets:
+        for socket in site._server.sockets:
             host, port = socket.getsockname()
             break
         yield f"http://{host}:{port}"
     finally:
-        server.close()
-        await server.wait_closed()
-        await application.shutdown()
-        await handler.shutdown(10)
-        await application.cleanup()
+        await runner.cleanup()
