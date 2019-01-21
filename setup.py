@@ -10,7 +10,7 @@ setup(
     package_dir={"": "src"},
     packages=find_packages(where="src"),
     python_requires=">=3.6",
-    install_requires=["attrs>=17.1.0", "structlog", "aiohttp>=2"],
+    install_requires=["attrs>=17.4.0", "structlog", "aiohttp>=2"],
     entry_points={
         "console_scripts": [
             "arsenic-check-ie11 = arsenic.helpers:check_ie11_environment_cli",
