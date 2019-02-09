@@ -93,19 +93,23 @@ class Element(RequestHelpers):
         option = await self.get_element(f"option[value={value}]")
         await option.click()
 
-    async def get_element(self, selector: str) -> "Element":
+    async def get_element(
+        self, selector: str, selector_type="css selector"
+    ) -> "Element":
         element_id = await self._request(
             url="/element",
             method="POST",
-            data={"using": "css selector", "value": selector},
+            data={"using": selector_type, "value": selector},
         )
         return self.session.create_element(element_id)
 
-    async def get_elements(self, selector: str) -> List["Element"]:
+    async def get_elements(
+        self, selector: str, selector_type="css selector"
+    ) -> List["Element"]:
         element_ids = await self._request(
             url="/elements",
             method="POST",
-            data={"using": "css selector", "value": selector},
+            data={"using": selector_type, "value": selector},
         )
         return [self.session.create_element(element_id) for element_id in element_ids]
 
@@ -144,31 +148,37 @@ class Session(RequestHelpers):
     async def get_page_source(self) -> str:
         return await self._request(url="/source", method="GET")
 
-    async def get_element(self, selector: str) -> Element:
+    async def get_element(self, selector: str, selector_type="css selector") -> Element:
         element_id = await self._request(
             url="/element",
             method="POST",
-            data={"using": "css selector", "value": selector},
+            data={"using": selector_type, "value": selector},
         )
         return self.create_element(element_id)
 
-    async def get_elements(self, selector: str) -> List[Element]:
+    async def get_elements(
+        self, selector: str, selector_type="css selector"
+    ) -> List[Element]:
         result = await self._request(
             url="/elements",
             method="POST",
-            data={"using": "css selector", "value": selector},
+            data={"using": selector_type, "value": selector},
         )
         return [self.create_element(element_id) for element_id in result]
 
-    async def wait_for_element(self, timeout: int, selector: str) -> Element:
+    async def wait_for_element(
+        self, timeout: int, selector: str, selector_type="css selector"
+    ) -> Element:
         return await self.wait(
-            timeout, partial(self.get_element, selector), NoSuchElement
+            timeout, partial(self.get_element, selector, selector_type), NoSuchElement
         )
 
-    async def wait_for_element_gone(self, timeout: int, selector: str):
+    async def wait_for_element_gone(
+        self, timeout: int, selector: str, selector_type="css selector"
+    ):
         async def callback():
             try:
-                await self.get_element(selector)
+                await self.get_element(selector, selector_type)
             except NoSuchElement:
                 return True
             else:

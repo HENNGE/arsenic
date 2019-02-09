@@ -37,6 +37,16 @@ async def test_simple_form_submit(session):
     assert "sample input" == await h2.get_text()
 
 
+async def test_simple_form_submit_xpath(session):
+    await session.get("/html/")
+    field = await session.wait_for_element(5, './/input[@name="field"]', "xpath")
+    await field.send_keys("sample input")
+    submit = await session.get_element('.//input[@type="submit"]', "xpath")
+    await submit.click()
+    h2 = await session.wait_for_element(5, ".//h2", "xpath")
+    assert "sample input" == await h2.get_text()
+
+
 async def test_displayed(session):
     await session.get("/js/")
     button = await session.wait_for_element(5, "button")
