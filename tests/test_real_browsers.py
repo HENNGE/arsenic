@@ -10,6 +10,7 @@ from arsenic.connection import RemoteConnection
 from arsenic.errors import NoSuchElement, OperationNotSupported
 from arsenic.session import CompatSession
 from arsenic.utils import Rect
+from arsenic.presets import SelectorType
 from .utils import null_context
 
 
@@ -39,11 +40,13 @@ async def test_simple_form_submit(session):
 
 async def test_simple_form_submit_xpath(session):
     await session.get("/html/")
-    field = await session.wait_for_element(5, './/input[@name="field"]', "xpath")
+    field = await session.wait_for_element(
+        5, './/input[@name="field"]', SelectorType.XPATH
+    )
     await field.send_keys("sample input")
-    submit = await session.get_element('.//input[@type="submit"]', "xpath")
+    submit = await session.get_element('.//input[@type="submit"]', SelectorType.XPATH)
     await submit.click()
-    h2 = await session.wait_for_element(5, ".//h2", "xpath")
+    h2 = await session.wait_for_element(5, ".//h2", SelectorType.XPATH)
     assert "sample input" == await h2.get_text()
 
 
