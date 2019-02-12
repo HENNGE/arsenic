@@ -150,7 +150,7 @@ class Session(RequestHelpers):
         return await self._request(url="/source", method="GET")
 
     async def get_element(
-        self, selector: str, selector_type: SelectorType = "css selector"
+        self, selector: str, selector_type: SelectorType = SelectorType.CSS_SELECTOR
     ) -> Element:
         element_id = await self._request(
             url="/element",
