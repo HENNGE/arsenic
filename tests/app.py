@@ -47,6 +47,7 @@ def build_app() -> Application:
     app.router.add_post(
         "/file/", render_view(jinja, "file_data.html", process_file_form)
     )
+    app.router.add_get("/selectors/", render_view(jinja, "selector_types.html"))
     return app
 
 

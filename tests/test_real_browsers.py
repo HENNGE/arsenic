@@ -1,4 +1,5 @@
 import secrets
+from functools import partial
 from pathlib import Path
 
 import pytest
@@ -8,7 +9,7 @@ from arsenic.actions import Keyboard, Mouse, chain
 from arsenic.browsers import Firefox
 from arsenic.connection import RemoteConnection
 from arsenic.errors import NoSuchElement, OperationNotSupported
-from arsenic.session import CompatSession
+from arsenic.session import CompatSession, Element
 from arsenic.utils import Rect
 from arsenic.constants import SelectorType
 from .utils import null_context
@@ -38,16 +39,20 @@ async def test_simple_form_submit(session):
     assert "sample input" == await h2.get_text()
 
 
-async def test_simple_form_submit_xpath(session):
-    await session.get("/html/")
-    field = await session.wait_for_element(
-        5, './/input[@name="field"]', SelectorType.xpath
-    )
-    await field.send_keys("sample input")
-    submit = await session.get_element('.//input[@type="submit"]', SelectorType.xpath)
-    await submit.click()
-    h2 = await session.wait_for_element(5, ".//h2", SelectorType.xpath)
-    assert "sample input" == await h2.get_text()
+@pytest.mark.parametrize(
+    "using,selector,result",
+    [
+        (SelectorType.css_selector, ".classname", "Class Name"),
+        (SelectorType.link_text, "link text", "link text"),
+        (SelectorType.partial_link_text, "partial", "partial link text"),
+        (SelectorType.tag_name, "h2", "Title Here"),
+        (SelectorType.xpath, ".//h2", "Title Here"),
+    ],
+)
+async def test_selector_types(session, using, selector, result):
+    await session.get("/selectors/")
+    element = await session.wait_for_element(5, selector, using)
+    assert result == await element.get_text()
 
 
 async def test_displayed(session):
