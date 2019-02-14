@@ -10,7 +10,7 @@ from arsenic import errors, constants
 from arsenic.connection import Connection, unwrap, check_response_error
 from arsenic.errors import NoSuchElement, OperationNotSupported
 from arsenic.utils import Rect, px_to_int
-from arsenic.presets import SelectorType
+from arsenic.constants import SelectorType
 
 UNSET = object()
 
@@ -95,7 +95,7 @@ class Element(RequestHelpers):
         await option.click()
 
     async def get_element(
-        self, selector: str, selector_type: SelectorType = SelectorType.CSS_SELECTOR
+        self, selector: str, selector_type: SelectorType = SelectorType.css_selector
     ) -> "Element":
         element_id = await self._request(
             url="/element",
@@ -105,7 +105,7 @@ class Element(RequestHelpers):
         return self.session.create_element(element_id)
 
     async def get_elements(
-        self, selector: str, selector_type: SelectorType = SelectorType.CSS_SELECTOR
+        self, selector: str, selector_type: SelectorType = SelectorType.css_selector
     ) -> List["Element"]:
         element_ids = await self._request(
             url="/elements",
@@ -150,7 +150,7 @@ class Session(RequestHelpers):
         return await self._request(url="/source", method="GET")
 
     async def get_element(
-        self, selector: str, selector_type: SelectorType = SelectorType.CSS_SELECTOR
+        self, selector: str, selector_type: SelectorType = SelectorType.css_selector
     ) -> Element:
         element_id = await self._request(
             url="/element",
@@ -160,7 +160,7 @@ class Session(RequestHelpers):
         return self.create_element(element_id)
 
     async def get_elements(
-        self, selector: str, selector_type: SelectorType = SelectorType.CSS_SELECTOR
+        self, selector: str, selector_type: SelectorType = SelectorType.css_selector
     ) -> List[Element]:
         result = await self._request(
             url="/elements",
@@ -173,7 +173,7 @@ class Session(RequestHelpers):
         self,
         timeout: int,
         selector: str,
-        selector_type: SelectorType = SelectorType.CSS_SELECTOR,
+        selector_type: SelectorType = SelectorType.css_selector,
     ) -> Element:
         return await self.wait(
             timeout, partial(self.get_element, selector, selector_type), NoSuchElement
@@ -183,7 +183,7 @@ class Session(RequestHelpers):
         self,
         timeout: int,
         selector: str,
-        selector_type: SelectorType = SelectorType.CSS_SELECTOR,
+        selector_type: SelectorType = SelectorType.css_selector,
     ):
         async def callback():
             try:
