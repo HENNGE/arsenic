@@ -118,6 +118,11 @@ class Element(RequestHelpers):
         data = await self._request(url="/rect", method="GET")
         return Rect(data["x"], data["y"], data["width"], data["height"])
 
+    async def get_screenshot(self):
+        return BytesIO(
+            base64.b64decode(await self._request(url="/screenshot", method="GET"))
+        )
+
 
 TCallback = Callable[..., Awaitable[Any]]
 TWaiter = Callable[[int, TCallback], Awaitable[Any]]
