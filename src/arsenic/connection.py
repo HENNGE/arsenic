@@ -79,7 +79,7 @@ class Connection:
         self.prefix = prefix
 
     @ensure_task
-    async def request(self, *, url: str, method: str, data=None) -> Tuple[int, Any]:
+    async def request(self, *, url: str, method: str, data=None, timeout=None) -> Tuple[int, Any]:
         header = {"Content-Type": "application/json"}
         if data is None:
             data = {}
@@ -92,7 +92,7 @@ class Connection:
             "request", url=strip_auth(full_url), method=method, header=header, body=body
         )
         async with self.session.request(
-            url=full_url, method=method, headers=header, data=body
+            url=full_url, method=method, headers=header, data=body, timeout=timeout or 300
         ) as response:
             response_body = await response.read()
             try:
