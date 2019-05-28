@@ -79,7 +79,7 @@ class Connection:
         self.prefix = prefix
 
     @ensure_task
-    async def request(self, *, url: str, method: str, data=None) -> Tuple[int, Any]:
+    async def request(self, *, url: str, method: str, data=None, timeout=None) -> Tuple[int, Any]:
         if data is None:
             data = {}
         if method not in {"POST", "PUT"}:
@@ -88,7 +88,7 @@ class Connection:
         full_url = self.prefix + url
         log.info("request", url=strip_auth(full_url), method=method, body=body)
         async with self.session.request(
-            url=full_url, method=method, data=body
+            url=full_url, method=method, data=body, timeout=timeout or 300
         ) as response:
             response_body = await response.read()
             try:
