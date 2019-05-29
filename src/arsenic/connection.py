@@ -79,7 +79,9 @@ class Connection:
         self.prefix = prefix
 
     @ensure_task
-    async def request(self, *, url: str, method: str, data=None, timeout=None) -> Tuple[int, Any]:
+    async def request(
+        self, *, url: str, method: str, data=None, timeout=None
+    ) -> Tuple[int, Any]:
         if data is None:
             data = {}
         if method not in {"POST", "PUT"}:
