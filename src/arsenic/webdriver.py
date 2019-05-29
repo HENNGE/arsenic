@@ -5,7 +5,7 @@ import time
 
 from arsenic.browsers import Browser
 from arsenic.connection import Connection
-from arsenic.errors import ArsenicTimeout, SessionStartError
+from arsenic.errors import ArsenicError, ArsenicTimeout, SessionStartError
 from arsenic.session import Session
 
 
@@ -67,8 +67,11 @@ class WebDriver:
         return session
 
     async def close(self):
-        for closer in reversed(self.closers):
-            await closer()
+        try:
+            for closer in reversed(self.closers):
+                await closer()
+        except ProcessLookupError:
+            raise ArsenicError
 
     async def wait(
         self,
