@@ -249,12 +249,12 @@ class Session(RequestHelpers):
 
     async def set_window_fullscreen(self, handle: str = "current"):
         return await self._request(
-            url="/window/fullscreen", method="POST"
+            url="/window/fullscreen", method="POST", data={"windowHandle": handle}
         )
 
-    async def set_window_maximized(self, handle: str = "current"):
+    async def set_window_maximize(self, handle: str = "current"):
         return await self._request(
-            url="/window/maximize", method="POST"
+            url="/window/maximize", method="POST", data={"windowHandle": handle}
         )
 
     async def get_alert_text(self) -> str:
