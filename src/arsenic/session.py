@@ -235,6 +235,13 @@ class Session(RequestHelpers):
             data={"script": script, "args": list(args)},
         )
 
+    async def execute_async_script(self, script: str, *args: Any):
+        return await self._request(
+            url="/execute/async",
+            method="POST",
+            data={"script": script, "args": list(args)},
+        )
+
     async def set_window_size(self, width: int, height: int, handle: str = "current"):
         return await self._request(
             url="/window/rect",
@@ -327,6 +334,11 @@ class CompatSession(CompatRequestHelpers, Session):
     async def execute_script(self, script, *args):
         return await self._request(
             url="/execute", method="POST", data={"script": script, "args": list(args)}
+        )
+
+    async def execute_async_script(self, script, *args):
+        return await self._request(
+            url="/execute_async", method="POST", data={"script": script, "args": list(args)}
         )
 
     async def perform_actions(self, actions: Dict[str, Any]):
