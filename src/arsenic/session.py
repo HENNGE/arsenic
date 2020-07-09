@@ -235,6 +235,13 @@ class Session(RequestHelpers):
             data={"script": script, "args": list(args)},
         )
 
+    async def execute_async_script(self, script: str, *args: Any):
+        return await self._request(
+            url="/execute/async",
+            method="POST",
+            data={"script": script, "args": list(args)},
+        )
+
     async def set_window_size(self, width: int, height: int, handle: str = "current"):
         return await self._request(
             url="/window/rect",
