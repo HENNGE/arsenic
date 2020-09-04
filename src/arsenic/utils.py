@@ -1,5 +1,5 @@
 import socket
-
+from decimal import Decimal
 import attr
 
 
@@ -16,7 +16,9 @@ def px_to_int(value: str) -> int:
         value = value[:-2]
     if value.isdigit():
         return int(value)
-    else:
+    try:
+        return int(decimal.Decimal(value))
+    except:
         raise ValueError(f"{original!r} is not an int or <int>px value")
 
 
