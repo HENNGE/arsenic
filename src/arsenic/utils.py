@@ -17,7 +17,7 @@ def px_to_int(value: str) -> int:
     if value.isdigit():
         return int(value)
     try:
-        return int(decimal.Decimal(value))
+        return int(Decimal(value))
     except:
         raise ValueError(f"{original!r} is not an int or <int>px value")
 
