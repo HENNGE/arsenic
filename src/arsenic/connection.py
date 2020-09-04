@@ -88,7 +88,9 @@ class Connection:
             header = None
         body = json.dumps(data) if data is not None else None
         full_url = self.prefix + url
-        log.info("request", url=strip_auth(full_url), method=method, header=header, body=body)
+        log.info(
+            "request", url=strip_auth(full_url), method=method, header=header, body=body
+        )
         async with self.session.request(
             url=full_url, method=method, headers=header, data=body
         ) as response:
