@@ -12,7 +12,6 @@ class Browser:
 class Firefox(Browser):
     defaults = {
         "browserName": "firefox",
-        "marionette": True,
         "acceptInsecureCerts": True,
     }
 
