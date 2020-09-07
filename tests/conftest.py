@@ -92,7 +92,7 @@ async def get_remote_session(root_url: str):
     else:
         context = null_context
     remote_browser = json.loads(os.environ["REMOTE_BROWSER"])
-    browser_cls = getattr(browsers, remote_browser.pop("type"))
+    browser_cls = getattr(browsers, remote_browser["browserName"])
     with context():
         async with get_session(
             services.Remote(url=os.environ["REMOTE_SERVICE"]),
