@@ -4,3 +4,4 @@
 
 * Added Changelog
 * Removed support for PhantomJS
+* Removed CompatSession/CompatElement

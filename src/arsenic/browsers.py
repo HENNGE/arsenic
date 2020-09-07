@@ -1,4 +1,4 @@
-from arsenic.session import Session, CompatSession
+from arsenic.session import Session
 
 
 class Browser:
@@ -10,14 +10,10 @@ class Browser:
 
 
 class Firefox(Browser):
-    defaults = {
-        "browserName": "firefox",
-        "acceptInsecureCerts": True,
-    }
+    defaults = {"browserName": "firefox", "acceptInsecureCerts": True}
 
 
 class Chrome(Browser):
-    session_class = CompatSession
     defaults = {"browserName": "chrome"}
 
 
