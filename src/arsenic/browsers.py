@@ -19,11 +19,7 @@ class Chrome(Browser):
 
 class InternetExplorer(Browser):
     session_class = Session
-    defaults = {
-        "browserName": "internet explorer",
-        "version": "",
-        "platform": "WINDOWS",
-    }
+    defaults = {"browserName": "internet explorer"}
 
 
 IE = InternetExplorer
