@@ -45,9 +45,6 @@ get_chrome_session = local_session_factory(
     browsers.Chrome,
     {"goog:chromeOptions": {"args": ["--headless", "--disable-gpu", "--no-sandbox"]}},
 )
-get_phantomjs_session = local_session_factory(
-    "get_phantomjs_session", "phantomjs", services.PhantomJS, browsers.PhantomJS
-)
 get_ie_session = local_session_factory(
     "get_ie_session",
     "IEDriverServer",
@@ -106,13 +103,7 @@ async def get_remote_session(root_url: str):
 
 
 @pytest.fixture(
-    params=[
-        get_ff_session,
-        get_chrome_session,
-        get_remote_session,
-        get_phantomjs_session,
-        get_ie_session,
-    ],
+    params=[get_ff_session, get_chrome_session, get_remote_session, get_ie_session],
     ids=lambda func: func.__name__[4:],
 )
 async def session(root_url, request) -> Session:

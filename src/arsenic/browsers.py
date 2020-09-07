@@ -22,16 +22,6 @@ class Chrome(Browser):
     defaults = {"browserName": "chrome"}
 
 
-class PhantomJS(Browser):
-    session_class = CompatSession
-    defaults = {
-        "browserName": "phantomjs",
-        "version": "",
-        "platform": "ANY",
-        "javascriptEnabled": True,
-    }
-
-
 class InternetExplorer(Browser):
     session_class = Session
     defaults = {
