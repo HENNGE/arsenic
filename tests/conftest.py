@@ -31,12 +31,18 @@ def local_session_factory(
     return ctx
 
 
+if os.environ.get("APPVEYOR", "false") == "True":
+    _extra_ff_opts = {"binary": r"C:\Program Files\Mozilla Firefox\firefox.exe"}
+else:
+    _extra_ff_opts = {}
+
+
 get_ff_session = local_session_factory(
     "get_ff_session",
     "geckodriver",
     services.Geckodriver,
     browsers.Firefox,
-    {"moz:firefoxOptions": {"args": ["-headless"]}},
+    {"moz:firefoxOptions": {"args": ["-headless"], **_extra_ff_opts}},
 )
 get_chrome_session = local_session_factory(
     "get_chrome_session",
@@ -104,7 +110,7 @@ async def get_remote_session(root_url: str):
 
 @pytest.fixture(
     params=[get_ff_session, get_chrome_session, get_remote_session, get_ie_session],
-    ids=lambda func: func.__name__[4:],
+    ids=lambda func: func.__name__.split("_")[1],
 )
 async def session(root_url, request) -> Session:
     async with request.param(root_url) as session:
