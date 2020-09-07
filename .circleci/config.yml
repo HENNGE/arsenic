@@ -1,14 +1,24 @@
 version: 2
 jobs:
   build:
-    working_directory: /home/
+    working_directory: /home/circleci/workspace/
     docker:
-      - image: arsenicpy/base:latest
+      - image: circleci/python:3.8-browsers
     steps:
       - checkout
-      - run: python3.6 -m venv test-env
-      - run: test-env/bin/pip install -U pip setuptools wheel
-      - run: test-env/bin/pip install . -r tests/requirements.txt
+      - run:
+          name: "Install Browserstack tools"
+          command: |
+            wget --no-verbose -O /tmp/BrowserStackLocal.zip https://www.browserstack.com/browserstack-local/BrowserStackLocal-linux-x64.zip
+            unzip /tmp/BrowserStackLocal.zip BrowserStackLocal -d /home/circleci/bin/
+            rm /tmp/BrowserStackLocal.zip
+            chmod 755 /home/circleci/bin/BrowserStackLocal
+      - run:
+          name: "Install Python Dependencies"
+          command: |
+            python -m venv test-env
+            test-env/bin/pip install -U pip setuptools wheel
+            test-env/bin/pip install . -r tests/requirements.txt
       - run:
           name: "Code Style Check"
           command: |
@@ -18,14 +28,16 @@ jobs:
       - run:
           name: "Run Tests"
           command: |
+            mkdir /home/circleci/reports/
             export REMOTE_SERVICE="http://${BROWSERSTACK_USERNAME}:${BROWSERSTACK_API_KEY}@hub.browserstack.com:80/wd/hub"
             export REMOTE_BROWSER="{\"resolution\": \"1024x768\", \"os_version\": \"10\", \"browserstack.localIdentifier\": \"${CIRCLE_SHA1}\", \"os\": \"Windows\", \"browser\": \"Chrome\", \"project\": \"arsenic\", \"build\": \"${CIRCLE_SHA1}-${CIRCLE_BUILD_NUM}-Chrome\", \"type\": \"Chrome\"}"
             export BROWSERSTACK_LOCAL_IDENTIFIER="${CIRCLE_SHA1}"
-            test-env/bin/pytest --verbose --cov arsenic --cov-report html:/home/reports/coverage/ --junitxml /home/reports/junit.xml
+            export BROWSERSTACKLOCAL_BINARY="/home/circleci/bin/BrowserStackLocal"
+            test-env/bin/pytest --verbose --cov arsenic --cov-report html:/home/circleci/reports/coverage/ --junitxml /home/circleci/reports/junit.xml
       - store_test_results:
-          path: /home/reports/junit.xml
+          path: /home/circleci/reports/junit.xml
       - store_artifacts:
-          path: /home/reports/coverage/
+          path: /home/circleci/reports/coverage/
     environment:
-      - DOCS_DIR: "/home/docs/"
+      - DOCS_DIR: "/home/circleci/workspace/docs/"
       - SPHINX_BUILD_BINARY: "test-env/bin/sphinx-build"
