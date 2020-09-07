@@ -18,10 +18,6 @@ Supported Browsers
      - 59
      - Geckodriver 0.20.0
      - Linux, macOS, Windows 10
-   * - PhantomJS
-     - 1.9.8
-     - PhantomJS 1.9.8
-     - Linux, macOS, Windows 10
    * - Google Chrome
      - 65
      - Chromedriver 2.37
