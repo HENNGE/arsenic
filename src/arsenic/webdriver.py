@@ -40,7 +40,7 @@ class WebDriver:
         status, response = await self.connection.request(
             url="/session",
             method="POST",
-            data={"desiredCapabilities": browser.capabilities},
+            data={"capabilities": {"alwaysMatch": browser.capabilities}},
         )
         original_response = response
         if "sessionId" not in response:
