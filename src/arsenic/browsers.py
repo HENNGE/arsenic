@@ -10,7 +10,7 @@ class Browser:
 
 
 class Firefox(Browser):
-    defaults = {"browserName": "firefox", "acceptInsecureCerts": True}
+    defaults = {"browserName": "firefox"}
 
 
 class Chrome(Browser):
