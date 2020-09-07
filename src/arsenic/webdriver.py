@@ -38,7 +38,9 @@ class WebDriver:
 
     async def new_session(self, browser: Browser, bind="") -> Session:
         status, response = await self.connection.request(
-            url="/session", method="POST", data=browser.build_capabilities()
+            url="/session",
+            method="POST",
+            data={"capabilities": {"alwaysMatch": browser.capabilities}},
         )
         original_response = response
         if "sessionId" not in response:
