@@ -24,7 +24,7 @@ jobs:
           command: |
             export LC_ALL=C.UTF-8
             export LANG=C.UTF-8
-            test-env/bin/black --check --line-length=88 --safe src tests setup.py
+            test-env/bin/black --check --line-length=88 --safe src tests
       - run:
           name: "Run Tests"
           command: |
