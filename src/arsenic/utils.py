@@ -1,4 +1,5 @@
 import socket
+from typing import Union
 
 import attr
 
@@ -10,14 +11,16 @@ def free_port() -> int:
         return sock.getsockname()[1]
 
 
-def px_to_int(value: str) -> int:
+def px_to_number(value: str) -> Union[int, float]:
     original = value
     if value.endswith("px"):
         value = value[:-2]
     if value.isdigit():
         return int(value)
-    else:
-        raise ValueError(f"{original!r} is not an int or <int>px value")
+    try:
+        return float(value)
+    except ValueError:
+        raise ValueError(f"{original!r} is not an number or <number>px value")
 
 
 @attr.s

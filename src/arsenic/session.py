@@ -9,7 +9,7 @@ import base64
 from arsenic import errors, constants
 from arsenic.connection import Connection, unwrap, check_response_error
 from arsenic.errors import NoSuchElement, OperationNotSupported
-from arsenic.utils import Rect, px_to_int
+from arsenic.utils import Rect, px_to_number
 from arsenic.constants import SelectorType
 
 UNSET = object()
