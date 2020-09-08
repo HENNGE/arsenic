@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "arsenic"
-version = "20.7"
+version = "20.9"
 description = "Asynchronous WebDriver client"
 authors = ["Jonas Obrist <jonas.obrist@hennge.com>"]
 license = "Apache-2.0"
