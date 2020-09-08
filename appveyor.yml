@@ -1,11 +1,10 @@
 build: false
 image: Visual Studio 2019
-environment:
-  SPHINXBUILD: "C:\\Python36-x64\\Scripts\\sphinx-build.exe"
 install:
-  - "C:\\Python36-x64\\Scripts\\pip.exe install . -r tests\\requirements.txt"
-  - "C:\\Python36-x64\\Scripts\\arsenic-configure-ie11.exe"
+  - "(Invoke-WebRequest -Uri https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py -UseBasicParsing).Content | python"
+  - "poetry install"
+  - "poetry run arsenic-configure-ie11"
 test_script:
-  - "C:\\Python36-x64\\Scripts\\arsenic-check-ie11.exe"
-  - "C:\\Python36-x64\\Scripts\\pytest.exe --verbose tests"
+  - "poetry run arsenic-check-ie11"
+  - "poetry run pytest --verbose tests"
 
