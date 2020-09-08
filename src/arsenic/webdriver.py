@@ -67,11 +67,8 @@ class WebDriver:
         return session
 
     async def close(self):
-        try:
-            for closer in reversed(self.closers):
-                await closer()
-        except ProcessLookupError:
-            raise ArsenicError
+        for closer in reversed(self.closers):
+            await closer()
 
     async def wait(
         self,
