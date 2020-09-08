@@ -6,14 +6,13 @@ from io import BytesIO
 from json import JSONDecodeError
 from pathlib import Path
 from typing import Any, Tuple
-from urllib.parse import urlparse, urlunparse, unwrap
+from urllib.parse import urlparse, urlunparse
 from zipfile import ZIP_DEFLATED, ZipFile
 
-from aiohttp import ClientResponse, ClientSession
+from aiohttp import ClientSession
 from structlog import get_logger
 
 from arsenic import errors, constants
-
 
 log = get_logger()
 
@@ -79,7 +78,9 @@ class Connection:
         self.prefix = prefix
 
     @ensure_task
-    async def request(self, *, url: str, method: str, data=None) -> Tuple[int, Any]:
+    async def request(
+        self, *, url: str, method: str, data=None, timeout=None
+    ) -> Tuple[int, Any]:
         header = {"Content-Type": "application/json"}
         if data is None:
             data = {}
@@ -92,7 +93,7 @@ class Connection:
             "request", url=strip_auth(full_url), method=method, header=header, body=body
         )
         async with self.session.request(
-            url=full_url, method=method, headers=header, data=body
+            url=full_url, method=method, headers=header, data=body, timeout=timeout
         ) as response:
             response_body = await response.read()
             try:

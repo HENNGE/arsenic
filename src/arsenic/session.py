@@ -34,8 +34,12 @@ def escape_value(value: str) -> str:
 
 
 class RequestHelpers:
-    async def _request(self, *, url: str, method: str, data=None, raw=False):
-        status, data = await self.connection.request(url=url, method=method, data=data)
+    async def _request(
+        self, *, url: str, method: str, data=None, raw=False, timeout=None
+    ):
+        status, data = await self.connection.request(
+            url=url, method=method, data=data, timeout=timeout
+        )
         self._check_response_error(status, data)
         if raw:
             return data
@@ -145,8 +149,10 @@ class Session(RequestHelpers):
     ):
         return await self._request(url=url, method=method, data=data)
 
-    async def get(self, url: str):
-        await self._request(url="/url", method="POST", data={"url": self.bind + url})
+    async def get(self, url: str, timeout=None):
+        await self._request(
+            url="/url", method="POST", data={"url": self.bind + url}, timeout=timeout
+        )
 
     async def get_url(self):
         return await self._request(url="/url", method="GET")
