@@ -255,9 +255,3 @@
     .. py:method:: close
 
         Coroutine to close this session.
-
-
-
-.. py:method:: CompatSession
-
-    :py:class:`Session` subclass for webdrivers that do not support certain APIs.

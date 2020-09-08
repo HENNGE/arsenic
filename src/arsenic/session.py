@@ -297,48 +297,6 @@ class CompatRequestHelpers(RequestHelpers):
             errors.raise_exception(data, status)
 
 
-class CompatElement(CompatRequestHelpers, Element):
-    async def get_rect(self):
-        location = await self._request(url="/location", method="GET")
-        width = await self.get_css_value("width")
-        height = await self.get_css_value("height")
-        return Rect(location["x"], location["y"], px_to_int(width), px_to_int(height))
-
-
-class CompatSession(CompatRequestHelpers, Session):
-    element_class = CompatElement
-
-    async def set_window_size(self, width: int, height: int, handle: str = "current"):
-        return await self._request(
-            url=f"/window/{handle}/size",
-            method="POST",
-            data={"width": width, "height": height},
-        )
-
-    async def get_window_size(self, handle: str = "current"):
-        return await self._request(url=f"/window/{handle}/size", method="GET")
-
-    async def get_window_handles(self):
-        return await self._request(url="/window_handles", method="GET")
-
-    async def get_window_handle(self):
-        return await self._request(url="/window_handle", method="GET")
-
-    async def execute_script(self, script, *args):
-        return await self._request(
-            url="/execute", method="POST", data={"script": script, "args": list(args)}
-        )
-
-    async def perform_actions(self, actions: Dict[str, Any]):
-        for url, method, data in transform_legacy_actions(actions["actions"]):
-            await self._request(url=url, method=method, data=data)
-
-    async def get_screenshot(self) -> BytesIO:
-        return BytesIO(
-            base64.b64decode(await self._request(url="/screenshot", method="GET"))
-        )
-
-
 def _pointer_down(device, action):
     del action["duration"]
     url = (
