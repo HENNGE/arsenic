@@ -16,15 +16,13 @@ jobs:
       - run:
           name: "Install Python Dependencies"
           command: |
-            python -m venv test-env
-            test-env/bin/pip install -U pip setuptools wheel
-            test-env/bin/pip install . -r tests/requirements.txt
+            poetry install
       - run:
           name: "Code Style Check"
           command: |
             export LC_ALL=C.UTF-8
             export LANG=C.UTF-8
-            test-env/bin/black --check --line-length=88 --safe src tests setup.py
+            poetry run black --check --line-length=88 --safe src tests
       - run:
           name: "Run Tests"
           command: |
@@ -33,11 +31,10 @@ jobs:
             export REMOTE_BROWSER="{\"bstack:options\": {\"os\": \"Windows\", \"osVersion\": \"10\", \"resolution\": \"1024x768\", \"local\": \"true\", \"seleniumVersion\": \"3.14.0\", \"localIdentifier\": \"${CIRCLE_SHA1}\", \"buildName\": \"${CIRCLE_SHA1}-${CIRCLE_BUILD_NUM}-Chrome\", \"projectName\": \"arsenic\"}, \"browserName\": \"Chrome\", \"browserVersion\": \"latest\"}"
             export BROWSERSTACK_LOCAL_IDENTIFIER="${CIRCLE_SHA1}"
             export BROWSERSTACKLOCAL_BINARY="/home/circleci/bin/BrowserStackLocal"
-            test-env/bin/pytest --verbose --cov arsenic --cov-report html:/home/circleci/reports/coverage/ --junitxml /home/circleci/reports/junit.xml
+            poetry run pytest --verbose --cov arsenic --cov-report html:/home/circleci/reports/coverage/ --junitxml /home/circleci/reports/junit.xml
       - store_test_results:
           path: /home/circleci/reports/junit.xml
       - store_artifacts:
           path: /home/circleci/reports/coverage/
     environment:
       - DOCS_DIR: "/home/circleci/workspace/docs/"
-      - SPHINX_BUILD_BINARY: "test-env/bin/sphinx-build"

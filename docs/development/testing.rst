@@ -12,15 +12,15 @@ This is the easiest way to get started running the tests. The test runner will t
 and run the tests on them (headlessly when possible). Note that on top of having the browsers (eg Firefox) installed,
 you also need their webdriver installed (eg Geckodriver).
 
-* Install the test requirements using ``pip install -r tests/requirements.txt``.
-* Install arsenic itself ``pip install -e .``.
-* Run ``pytest``.
+* Install `poetry`_.
+* Install the test requirements using ``poetry install``.
+* Run ``poetry run pytest``.
 
 Docker/CircleCI
 ===============
 
 * Install the `CircleCI command line tool`_.
-* Run ``circleci build``
+* Run ``circleci local execute``
 
 .. warning::
 
@@ -67,3 +67,4 @@ Open the file ``tests/conftest.py``. Add an extra function to the ``params`` lis
 argument and yields a ``Session``.
 
 .. _CircleCI command line tool: https://circleci.com/docs/2.0/local-jobs/
+.. _poetry: https://python-poetry.org/docs/#installation
