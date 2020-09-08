@@ -204,6 +204,7 @@ class Session(RequestHelpers):
         domain: str = UNSET,
         secure: bool = UNSET,
         expiry: int = UNSET,
+        httponly: bool = UNSET,
     ):
         cookie = {"name": name, "value": value}
         if path is not UNSET:
@@ -214,6 +215,8 @@ class Session(RequestHelpers):
             cookie["secure"] = secure
         if expiry is not UNSET:
             cookie["expiry"] = expiry
+        if httponly is not UNSET:
+            cookie["HttpOnly"] = httponly
         await self._request(url="/cookie", method="POST", data={"cookie": cookie})
 
     async def get_cookie(self, name: str):

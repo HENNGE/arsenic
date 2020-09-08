@@ -155,6 +155,7 @@
         :param str domain: Optional, keyword-only domain of the cookie.
         :param bool secure: Optional, keyword-only secure flag of the cookie.
         :param int expiry: Optional, keyword-only expiration of the cookie.
+        :param bool httponly: Optional, keyword-only httponly flag of the cookie.
         :rtype: None
 
     .. py:method:: get_cookie(name)
