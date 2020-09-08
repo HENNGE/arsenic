@@ -57,6 +57,9 @@ get_ie_session = local_session_factory(
     services.IEDriverServer,
     browsers.InternetExplorer,
 )
+get_edge_session = local_session_factory(
+    "get_edge_session", "msedgedriver", services.MSEdgeDriver, browsers.Edge
+)
 
 
 @contextmanager

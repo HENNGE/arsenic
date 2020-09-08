@@ -23,3 +23,10 @@ class InternetExplorer(Browser):
 
 
 IE = InternetExplorer
+
+
+class MicrosoftEdge(Browser):
+    defaults = {"browserName": "MicrosoftEdge"}
+
+
+Edge = MicrosoftEdge

@@ -12,5 +12,6 @@
 * Added support for maximizing and fullscreening the window
 * Added support for setting a timeout on the get API
 * Added support for new geckodriver
+* Added support for (chromium) Edge
 * arsenic now always uses the W3C webdriver protocol, the selenium protocol is no longer supported
 
