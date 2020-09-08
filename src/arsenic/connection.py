@@ -94,7 +94,11 @@ class Connection:
             "request", url=strip_auth(full_url), method=method, header=header, body=body
         )
         async with self.session.request(
-            url=full_url, method=method, headers=header, data=body, timeout=timeout or 300
+            url=full_url,
+            method=method,
+            headers=header,
+            data=body,
+            timeout=timeout or 300,
         ) as response:
             response_body = await response.read()
             try:
