@@ -96,13 +96,11 @@ async def get_remote_session(root_url: str):
         raise pytest.skip("No remote browser configured (REMOTE_BROWSER)")
     if "REMOTE_SERVICE" not in os.environ:
         raise pytest.skip("No remote service configured (REMOTE_SERVICE)")
-    if "BROWSERSTACK_API_KEY" in os.environ:
-        context = bsl_context
-    else:
-        context = null_context
+    if "BROWSERSTACK_API_KEY" not in os.environ:
+        raise pytest.skip("No browserstack api key configured (BROWSERSTACK_API_KEY)")
     remote_browser = json.loads(os.environ["REMOTE_BROWSER"])
     browser_cls = getattr(browsers, remote_browser["browserName"])
-    with context():
+    with bsl_context():
         async with get_session(
             services.Remote(url=os.environ["REMOTE_SERVICE"]),
             browser_cls(**remote_browser),

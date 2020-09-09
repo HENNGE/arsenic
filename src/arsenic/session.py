@@ -1,16 +1,16 @@
+import base64
 from functools import partial
 from io import BytesIO
 from pathlib import Path
 from typing import Awaitable, Callable, Any, List, Dict, Tuple, Iterator
 
 import attr
-import base64
 
-from arsenic import errors, constants
-from arsenic.connection import Connection, unwrap, check_response_error
-from arsenic.errors import NoSuchElement, OperationNotSupported
-from arsenic.utils import Rect, px_to_number
+from arsenic import constants
+from arsenic.connection import Connection, unwrap
 from arsenic.constants import SelectorType
+from arsenic.errors import NoSuchElement, OperationNotSupported
+from arsenic.utils import Rect
 
 UNSET = object()
 
@@ -40,14 +40,10 @@ class RequestHelpers:
         status, data = await self.connection.request(
             url=url, method=method, data=data, timeout=timeout
         )
-        self._check_response_error(status, data)
         if raw:
             return data
         if data:
             return self._unwrap(data.get("value", None))
-
-    def _check_response_error(self, status: int, data: Any) -> None:
-        check_response_error(status, data)
 
     def _unwrap(self, value):
         """
@@ -318,14 +314,6 @@ class Session(RequestHelpers):
         return await self._request(
             url="/window", method="POST", data={"handle": handle, "name": handle}
         )
-
-
-class CompatRequestHelpers(RequestHelpers):
-    def _check_response_error(self, status: int, data: Any):
-        if "status" in data and data["status"] != 0:
-            errors.raise_exception(data, status)
-        if status >= 400 and "value" in data and "error" in data["value"]:
-            errors.raise_exception(data, status)
 
 
 def _pointer_down(device, action):

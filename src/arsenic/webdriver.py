@@ -56,15 +56,13 @@ class WebDriver:
                 err_resp["error"], err_resp.get("message", ""), original_response
             )
         session_id = response["sessionId"]
-        session = browser.session_class(
+        return browser.session_class(
             connection=self.connection.prefixed(f"/session/{session_id}"),
             bind=bind,
             wait=self.wait,
             driver=self,
             browser=browser,
         )
-        session._check_response_error(status, response)
-        return session
 
     async def close(self):
         for closer in reversed(self.closers):

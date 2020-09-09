@@ -33,11 +33,6 @@ def wrap_screen(data):
         data["value"]["screen"] = BytesIO(base64.b64decode(data["value"]["screen"]))
 
 
-def check_response_error(status: int, data: Any) -> None:
-    if status >= 400:
-        errors.raise_exception(data, status)
-
-
 def unwrap(value):
     if isinstance(value, dict) and (
         "ELEMENT" in value or constants.WEB_ELEMENT in value
@@ -70,6 +65,19 @@ def strip_auth(url: str) -> str:
     return urlunparse(
         (pr.scheme, safe_netloc, pr.path, pr.params, pr.query, pr.fragment)
     )
+
+
+def check_response_error(*, status: int, data: Any) -> None:
+    if status >= 400:
+        errors.raise_exception(data, status)
+    if not isinstance(data, dict):
+        return
+    data_status = data.get("status", None)
+    if data_status is None:
+        return
+    if data_status == constants.STATUS_SUCCESS:
+        return
+    errors.raise_exception(data, status)
 
 
 class Connection:
@@ -110,6 +118,7 @@ class Connection:
                 response=response,
                 data=data,
             )
+            check_response_error(data=data, status=response.status)
             return response.status, data
 
     async def upload_file(self, path: Path) -> Path:
@@ -129,7 +138,6 @@ class RemoteConnection(Connection):
         status, data = await self.request(
             url="/file", method="POST", data={"file": content}
         )
-        check_response_error(status, data)
         value = unwrap(data.get("value", None))
         log.info("upload-file", path=path, resolved_path=value)
         return Path(value)
