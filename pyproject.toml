@@ -4,6 +4,24 @@ version = "20.9"
 description = "Asynchronous WebDriver client"
 authors = ["Jonas Obrist <jonas.obrist@hennge.com>"]
 license = "Apache-2.0"
+readme = "README.md"
+homepage = "https://github.com/HDE/arsenic"
+repository = "https://github.com/HDE/arsenic"
+documentation = "https://arsenic.readthedocs.io/en/latest/"
+keywords = ["asyncio"]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Programming Language :: Python :: 3 :: Only",
+  "Framework :: AsyncIO",
+  "Topic :: Software Development :: Testing",
+  "Programming Language :: Python :: 3.7",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Operating System :: POSIX :: Linux",
+  "Operating System :: MacOS :: MacOS X",
+  "Operating System :: Microsoft :: Windows",
+]
 
 [tool.poetry.dependencies]
 python = "^3.7"
