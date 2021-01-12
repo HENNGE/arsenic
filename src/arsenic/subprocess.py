@@ -3,13 +3,11 @@ import asyncio
 import os
 import subprocess
 import sys
+from logging import getLogger
 from typing import List, TypeVar
 from asyncio.subprocess import DEVNULL, PIPE
 
-from structlog import get_logger
-
-log = get_logger()
-
+log = getLogger(__name__)
 
 P = TypeVar("P")
 
@@ -66,7 +64,7 @@ class AsyncioSubprocessImpl(BaseSubprocessImpl):
         try:
             await asyncio.wait_for(process.communicate(), 1)
         except asyncio.futures.TimeoutError:
-            log.warn("could not terminate process", process=process, impl=self)
+            log.warn("could not terminate process %s", dict(process=process, impl=self))
 
 
 class ThreadedSubprocessImpl(BaseSubprocessImpl):
@@ -106,7 +104,7 @@ class ThreadedSubprocessImpl(BaseSubprocessImpl):
         try:
             process.communicate(timeout=1)
         except subprocess.TimeoutExpired:
-            log.warn("could not terminate process", process=process, impl=self)
+            log.warn("could not terminate process %s", dict(process=process, impl=self))
 
 
 def get_subprocess_impl() -> BaseSubprocessImpl:

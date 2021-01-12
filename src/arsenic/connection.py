@@ -4,17 +4,17 @@ import json
 from functools import wraps
 from io import BytesIO
 from json import JSONDecodeError
+from logging import getLogger
 from pathlib import Path
 from typing import Any, Tuple
 from urllib.parse import urlparse, urlunparse
 from zipfile import ZIP_DEFLATED, ZipFile
 
 from aiohttp import ClientSession
-from structlog import get_logger
 
 from arsenic import errors, constants
 
-log = get_logger()
+log = getLogger(__name__)
 
 
 def wrap_screen(data):
@@ -98,7 +98,8 @@ class Connection:
         body = json.dumps(data) if data is not None else None
         full_url = self.prefix + url
         log.info(
-            "request", url=strip_auth(full_url), method=method, header=header, body=body
+            "request %s",
+            dict(url=strip_auth(full_url), method=method, header=header, body=body),
         )
         async with self.session.request(
             url=full_url, method=method, headers=header, data=body, timeout=timeout
@@ -107,22 +108,24 @@ class Connection:
             try:
                 data = json.loads(response_body)
             except JSONDecodeError as exc:
-                log.error("json-decode", body=response_body)
+                log.error("json-decode %s", dict(body=response_body))
                 data = {"error": "!internal", "message": str(exc), "stacktrace": ""}
             wrap_screen(data)
             log.info(
-                "response",
-                url=strip_auth(full_url),
-                method=method,
-                body=body,
-                response=response,
-                data=data,
+                "response %s",
+                dict(
+                    url=strip_auth(full_url),
+                    method=method,
+                    body=body,
+                    response=response,
+                    data=data,
+                ),
             )
             check_response_error(data=data, status=response.status)
             return response.status, data
 
     async def upload_file(self, path: Path) -> Path:
-        log.info("upload-file", path=path, resolved_path=path)
+        log.info("upload-file %s", dict(path=path, resolved_path=path))
         return path
 
     def prefixed(self, prefix: str) -> "Connection":
@@ -139,5 +142,5 @@ class RemoteConnection(Connection):
             url="/file", method="POST", data={"file": content}
         )
         value = unwrap(data.get("value", None))
-        log.info("upload-file", path=path, resolved_path=value)
+        log.info("upload-file %s", dict(path=path, resolved_path=value))
         return Path(value)
