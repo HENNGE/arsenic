@@ -1,7 +1,7 @@
 from logging import getLogger
 from typing import Union, Dict, Type, Any
 
-log = getLogger(__name__)
+log = getLogger(__package__)
 
 
 class ArsenicError(Exception):

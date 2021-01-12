@@ -14,7 +14,7 @@ from aiohttp import ClientSession
 
 from arsenic import errors, constants
 
-log = getLogger(__name__)
+log = getLogger(__package__)
 
 
 def wrap_screen(data):

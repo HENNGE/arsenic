@@ -7,7 +7,7 @@ from logging import getLogger
 from typing import List, TypeVar
 from asyncio.subprocess import DEVNULL, PIPE
 
-log = getLogger(__name__)
+log = getLogger(__package__)
 
 P = TypeVar("P")
 
