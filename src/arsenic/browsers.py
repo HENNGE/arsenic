@@ -17,6 +17,10 @@ class Chrome(Browser):
     defaults = {"browserName": "chrome"}
 
 
+class Safari(Browser):
+    defaults = {"browserName": "safari"}
+
+
 class InternetExplorer(Browser):
     session_class = Session
     defaults = {"browserName": "internet explorer"}

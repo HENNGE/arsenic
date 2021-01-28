@@ -110,6 +110,17 @@ class Chromedriver(Service):
 
 
 @attr.s
+class Safaridriver(Service):
+    log_file = attr.ib(default=sys.stdout)
+    binary = attr.ib(default="safaridriver")
+
+    async def start(self):
+        port = free_port()
+        return await subprocess_based_service(
+            [self.binary, f"--port={port}"], f"http://localhost:{port}", self.log_file
+        )
+
+@attr.s
 class MSEdgeDriver(Service):
     log_file = attr.ib(default=sys.stdout)
     binary = attr.ib(default="msedgedriver")
