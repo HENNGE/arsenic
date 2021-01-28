@@ -120,6 +120,7 @@ class Safaridriver(Service):
             [self.binary, f"--port={port}"], f"http://localhost:{port}", self.log_file
         )
 
+
 @attr.s
 class MSEdgeDriver(Service):
     log_file = attr.ib(default=sys.stdout)
