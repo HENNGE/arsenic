@@ -21,6 +21,9 @@ class Safari(Browser):
     defaults = {"browserName": "safari"}
 
 
+class SafariTP(Browser):
+    defaults = {"browserName": "Safari Technology Preview"}
+
 class InternetExplorer(Browser):
     session_class = Session
     defaults = {"browserName": "internet explorer"}

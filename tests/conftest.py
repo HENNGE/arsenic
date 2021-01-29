@@ -60,6 +60,13 @@ get_safari_session = local_session_factory(
     browsers.Safari,
 )
 
+get_safari_tp_session = local_session_factory(
+    "get_safari_tp_session",
+    "/Applications/Safari Technology Preview.app/Contents/MacOS/safaridriver",
+    services.SafariTPdriver,
+    browsers.SafariTP,
+)
+
 get_ie_session = local_session_factory(
     "get_ie_session",
     "IEDriverServer",
@@ -124,6 +131,7 @@ async def get_remote_session(root_url: str):
         get_ff_session,
         get_chrome_session,
         get_safari_session,
+        get_safari_tp_session,
         get_remote_session,
         get_ie_session,
     ],

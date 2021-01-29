@@ -120,6 +120,17 @@ class Safaridriver(Service):
             [self.binary, f"--port={port}"], f"http://localhost:{port}", self.log_file
         )
 
+@attr.s
+class SafariTPdriver(Service):
+    log_file = attr.ib(default=sys.stdout)
+    binary = attr.ib(default="/Applications/Safari Technology Preview.app/Contents/MacOS/safaridriver")
+
+    async def start(self):
+        port = free_port()
+        return await subprocess_based_service(
+            [self.binary, f"--port={port}"], f"http://localhost:{port}", self.log_file
+        )
+
 
 @attr.s
 class MSEdgeDriver(Service):
