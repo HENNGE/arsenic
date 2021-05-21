@@ -6,6 +6,7 @@ from distutils.version import StrictVersion
 from functools import partial
 from typing import List, TextIO, Optional
 
+import aiohttp.client_exceptions
 import attr
 from aiohttp import ClientSession
 
@@ -14,6 +15,7 @@ from arsenic.http import Auth, BasicAuth
 from arsenic.subprocess import get_subprocess_impl
 from arsenic.utils import free_port
 from arsenic.webdriver import WebDriver
+from arsenic.errors import ArsenicError
 
 
 async def tasked(coro):
@@ -26,7 +28,10 @@ async def check_service_status(session: ClientSession, url: str) -> bool:
 
 
 async def subprocess_based_service(
-    cmd: List[str], service_url: str, log_file: TextIO
+    cmd: List[str],
+    service_url: str,
+    log_file: TextIO,
+    start_timeout: float = 15,
 ) -> WebDriver:
     closers = []
     try:
@@ -36,16 +41,23 @@ async def subprocess_based_service(
         session = ClientSession()
         closers.append(session.close)
         count = 0
-        while True:
-            try:
-                if await tasked(check_service_status(session, service_url)):
-                    break
-            except:
-                # TODO: make this better
-                count += 1
-                if count > 30:
-                    raise Exception("not starting?")
-                await asyncio.sleep(0.5)
+
+        async def wait_service():
+            # Wait for service with exponential back-off
+            for i in range(-10, 9999):
+                try:
+                    ok = await tasked(check_service_status(session, service_url))
+                except aiohttp.client_exceptions.ClientConnectorError:
+                    # We possibly checked too quickly
+                    ok = False
+                if ok:
+                    return
+                await asyncio.sleep(start_timeout * 2 ** i)
+
+        try:
+            await asyncio.wait_for(wait_service(), timeout=start_timeout)
+        except asyncio.TimeoutError:
+            raise ArsenicError("not starting?")
         return WebDriver(Connection(session, service_url), closers)
     except:
         for closer in reversed(closers):
@@ -64,6 +76,7 @@ class Geckodriver(Service):
     log_file = attr.ib(default=sys.stdout)
     binary = attr.ib(default="geckodriver")
     version_check = attr.ib(default=True)
+    start_timeout = attr.ib(default=15)
 
     _version_re = re.compile(r"geckodriver (\d+\.\d+)")
 
@@ -94,6 +107,7 @@ class Geckodriver(Service):
             [self.binary, "--port", str(port)],
             f"http://localhost:{port}",
             self.log_file,
+            start_timeout=self.start_timeout,
         )
 
 
@@ -101,11 +115,15 @@ class Geckodriver(Service):
 class Chromedriver(Service):
     log_file = attr.ib(default=sys.stdout)
     binary = attr.ib(default="chromedriver")
+    start_timeout = attr.ib(default=15)
 
     async def start(self):
         port = free_port()
         return await subprocess_based_service(
-            [self.binary, f"--port={port}"], f"http://localhost:{port}", self.log_file
+            [self.binary, f"--port={port}"],
+            f"http://localhost:{port}",
+            self.log_file,
+            start_timeout=self.start_timeout,
         )
 
 
@@ -113,11 +131,15 @@ class Chromedriver(Service):
 class MSEdgeDriver(Service):
     log_file = attr.ib(default=sys.stdout)
     binary = attr.ib(default="msedgedriver")
+    start_timeout = attr.ib(default=15)
 
     async def start(self):
         port = free_port()
         return await subprocess_based_service(
-            [self.binary, f"--port={port}"], f"http://localhost:{port}", self.log_file
+            [self.binary, f"--port={port}"],
+            f"http://localhost:{port}",
+            self.log_file,
+            start_timeout=self.start_timeout,
         )
 
 
@@ -160,6 +182,7 @@ class IEDriverServer(Service):
     log_file = attr.ib(default=sys.stdout)
     binary = attr.ib(default="IEDriverServer.exe")
     log_level = attr.ib(default="FATAL")
+    start_timeout = attr.ib(default=15)
 
     async def start(self):
         port = free_port()
@@ -167,4 +190,5 @@ class IEDriverServer(Service):
             [self.binary, f"/port={port}", f"/log-level={self.log_level}"],
             f"http://localhost:{port}",
             self.log_file,
+            start_timeout=self.start_timeout,
         )
