@@ -315,6 +315,9 @@ class Session(RequestHelpers):
             url="/window", method="POST", data={"handle": handle, "name": handle}
         )
 
+    async def new_window(self):
+        return await self._request(url="/window/new", method="POST")
+
 
 def _pointer_down(device, action):
     del action["duration"]

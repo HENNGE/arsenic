@@ -1,5 +1,6 @@
 import secrets
 from pathlib import Path
+from typing import List, Any, Dict
 
 import pytest
 from PIL import Image
@@ -191,3 +192,11 @@ async def test_request(session):
     url = "/window/handles"
     handles = await session.request(url)
     assert len(handles) == 1
+
+
+async def test_new_window(session):
+    new_window_data: Dict[str, Any] = await session.new_window()
+    new_handle: str = new_window_data["handle"]
+    handles: List[str] = await session.get_window_handles()
+    assert new_handle in handles
+    assert len(handles) == 2
