@@ -8,7 +8,7 @@ import attr
 
 from arsenic import constants
 from arsenic.connection import Connection, unwrap
-from arsenic.constants import SelectorType
+from arsenic.constants import SelectorType, WindowType
 from arsenic.errors import NoSuchElement, OperationNotSupported
 from arsenic.utils import Rect
 
@@ -315,8 +315,9 @@ class Session(RequestHelpers):
             url="/window", method="POST", data={"handle": handle, "name": handle}
         )
 
-    async def new_window(self):
-        return await self._request(url="/window/new", method="POST")
+    async def new_window(self, window_type: WindowType = None):
+        data = {"type": window_type} if window_type is not None else None
+        return await self._request(url="/window/new", method="POST", data=data)
 
 
 def _pointer_down(device, action):

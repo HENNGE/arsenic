@@ -8,7 +8,7 @@ from PIL import Image
 from arsenic.actions import Keyboard, Mouse, chain
 from arsenic.browsers import Firefox
 from arsenic.connection import RemoteConnection
-from arsenic.constants import SelectorType
+from arsenic.constants import SelectorType, WindowType
 from arsenic.errors import NoSuchElement
 from arsenic.utils import Rect
 
@@ -194,8 +194,14 @@ async def test_request(session):
     assert len(handles) == 1
 
 
-async def test_new_window(session):
-    new_window_data: Dict[str, Any] = await session.new_window()
+@pytest.mark.parametrize(
+    "window_type", [None, WindowType.tab.value, WindowType.window.value]
+)
+async def test_new_window(session, window_type):
+    new_window_data: Dict[str, Any] = await session.new_window(window_type)
+    assert new_window_data["type"] == (
+        window_type if window_type is not None else WindowType.tab.value
+    )
     new_handle: str = new_window_data["handle"]
     handles: List[str] = await session.get_window_handles()
     assert new_handle in handles
