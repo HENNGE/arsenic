@@ -315,10 +315,9 @@ class Session(RequestHelpers):
             url="/window", method="POST", data={"handle": handle, "name": handle}
         )
 
-    async def new_window(self, window_type: WindowType = None):
-        window_type = window_type if window_type is not None else WindowType.tab.value
+    async def new_window(self, window_type: WindowType = WindowType.tab):
         return await self._request(
-            url="/window/new", method="POST", data={"type": window_type}
+            url="/window/new", method="POST", data={"type": window_type.value}
         )
 
 
