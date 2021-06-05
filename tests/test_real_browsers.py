@@ -197,9 +197,7 @@ async def test_request(session):
 @pytest.mark.parametrize("window_type", [WindowType.tab, WindowType.window])
 async def test_new_window(session, window_type):
     new_window_data: Dict[str, Any] = await session.new_window(window_type)
-    assert new_window_data["type"] == (
-        window_type if window_type is not None else WindowType.tab.value
-    )
+    assert new_window_data["type"] == window_type.value
     new_handle: str = new_window_data["handle"]
     handles: List[str] = await session.get_window_handles()
     assert new_handle in handles
