@@ -316,8 +316,10 @@ class Session(RequestHelpers):
         )
 
     async def new_window(self, window_type: WindowType = None):
-        data = {"type": window_type} if window_type is not None else None
-        return await self._request(url="/window/new", method="POST", data=data)
+        window_type = window_type if window_type is not None else WindowType.tab.value
+        return await self._request(
+            url="/window/new", method="POST", data={"type": window_type}
+        )
 
 
 def _pointer_down(device, action):
