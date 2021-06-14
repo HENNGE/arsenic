@@ -8,7 +8,7 @@ import attr
 
 from arsenic import constants
 from arsenic.connection import Connection, unwrap
-from arsenic.constants import SelectorType
+from arsenic.constants import SelectorType, WindowType
 from arsenic.errors import NoSuchElement, OperationNotSupported
 from arsenic.utils import Rect
 
@@ -313,6 +313,11 @@ class Session(RequestHelpers):
     async def switch_to_window(self, handle):
         return await self._request(
             url="/window", method="POST", data={"handle": handle, "name": handle}
+        )
+
+    async def new_window(self, window_type: WindowType = WindowType.tab):
+        return await self._request(
+            url="/window/new", method="POST", data={"type": window_type.value}
         )
 
 

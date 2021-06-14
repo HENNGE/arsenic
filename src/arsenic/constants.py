@@ -11,3 +11,8 @@ class SelectorType(Enum):
     partial_link_text = "partial link text"
     tag_name = "tag name"
     xpath = "xpath"
+
+
+class WindowType(Enum):
+    tab = "tab"
+    window = "window"

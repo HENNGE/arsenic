@@ -222,6 +222,13 @@
 
         :rtype: List[str]
 
+    .. py:method:: new_window(window_type=WindowType.tab.value)
+
+        Coroutine to open new window
+
+        :param str window_type: type of the window to open: value can be "window" or "tab"
+        :rtype: dict, containing window handle and window type, example: {"handle": "17", "type": "tab"}
+
     .. py:method:: get_alert_text
 
         Coroutine to return the text of an alert message.

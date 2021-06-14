@@ -1,5 +1,6 @@
 import secrets
 from pathlib import Path
+from typing import List, Any, Dict
 
 import pytest
 from PIL import Image
@@ -7,7 +8,7 @@ from PIL import Image
 from arsenic.actions import Keyboard, Mouse, chain
 from arsenic.browsers import Firefox
 from arsenic.connection import RemoteConnection
-from arsenic.constants import SelectorType
+from arsenic.constants import SelectorType, WindowType
 from arsenic.errors import NoSuchElement
 from arsenic.utils import Rect
 
@@ -191,3 +192,13 @@ async def test_request(session):
     url = "/window/handles"
     handles = await session.request(url)
     assert len(handles) == 1
+
+
+@pytest.mark.parametrize("window_type", [WindowType.tab, WindowType.window])
+async def test_new_window(session, window_type):
+    new_window_data: Dict[str, Any] = await session.new_window(window_type)
+    assert new_window_data["type"] == window_type.value
+    new_handle: str = new_window_data["handle"]
+    handles: List[str] = await session.get_window_handles()
+    assert new_handle in handles
+    assert len(handles) == 2
