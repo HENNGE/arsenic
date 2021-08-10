@@ -54,6 +54,13 @@
         :param str name: Name of the attribute to get.
         :rtype: str
 
+    .. py:method:: get_property(name)
+
+        Coroutine which returns the value of a given property of this element.
+
+        :param str name: Name of the property to get.
+        :rtype: str
+
     .. py:method:: select_by_value(value)
 
         Coroutine to select an option by value. This is useful if this element is a select

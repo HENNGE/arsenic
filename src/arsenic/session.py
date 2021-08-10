@@ -86,6 +86,9 @@ class Element(RequestHelpers):
     async def get_attribute(self, name: str) -> str:
         return await self._request(url=f"/attribute/{name}", method="GET")
 
+    async def get_property(self, name: str) -> str:
+        return await self._request(url=f"/property/{name}", method="GET")
+
     async def get_css_value(self, name: str) -> str:
         return await self._request(url=f"/css/{name}", method="GET")
 
