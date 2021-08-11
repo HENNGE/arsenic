@@ -94,8 +94,8 @@ Headless Firefox
 To use Firefox headless, use::
 
     service = services.Geckodriver()
-    browser = browsers.Firefox(firefoxOptions={
+    browser = browsers.Firefox(**{"moz:firefoxOptions": {
         'args': ['-headless']
-    })
+    }})
     async with get_session(service, browser) as session:
         ...
