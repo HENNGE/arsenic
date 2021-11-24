@@ -20,6 +20,11 @@ async def test_get_page_source(session):
     assert "Hello World!" in await session.get_page_source()
 
 
+async def test_get_title(session):
+    await session.get("/")
+    assert "Test Index" == await session.get_title()
+
+
 async def test_element_not_found(session):
     await session.get("/")
     with pytest.raises(NoSuchElement):

@@ -159,6 +159,9 @@ class Session(RequestHelpers):
     async def get_page_source(self) -> str:
         return await self._request(url="/source", method="GET")
 
+    async def get_title(self) -> str:
+        return await self._request(url="/title", method="GET")
+
     async def get_element(
         self, selector: str, selector_type: SelectorType = SelectorType.css_selector
     ) -> Element:

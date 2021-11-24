@@ -120,6 +120,12 @@
 
         :rtype: str
 
+    .. py:method:: get_title
+
+        Coroutine to get the title of the current page.
+
+        :rtype: str
+
     .. py:method:: get_element(selector)
 
         Coroutine to get an element via CSS selector.
