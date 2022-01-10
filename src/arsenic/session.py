@@ -1,16 +1,16 @@
+import base64
 from functools import partial
 from io import BytesIO
 from pathlib import Path
 from typing import Awaitable, Callable, Any, List, Dict, Tuple, Iterator
 
 import attr
-import base64
 
-from arsenic import errors, constants
-from arsenic.connection import Connection, unwrap, check_response_error
+from arsenic import constants
+from arsenic.connection import Connection, unwrap
+from arsenic.constants import SelectorType, WindowType
 from arsenic.errors import NoSuchElement, OperationNotSupported
-from arsenic.utils import Rect, px_to_int
-from arsenic.constants import SelectorType
+from arsenic.utils import Rect
 
 UNSET = object()
 
@@ -34,16 +34,16 @@ def escape_value(value: str) -> str:
 
 
 class RequestHelpers:
-    async def _request(self, *, url: str, method: str, data=None, raw=False):
-        status, data = await self.connection.request(url=url, method=method, data=data)
-        self._check_response_error(status, data)
+    async def _request(
+        self, *, url: str, method: str, data=None, raw=False, timeout=None
+    ):
+        status, data = await self.connection.request(
+            url=url, method=method, data=data, timeout=timeout
+        )
         if raw:
             return data
         if data:
             return self._unwrap(data.get("value", None))
-
-    def _check_response_error(self, status: int, data: Any) -> None:
-        check_response_error(status, data)
 
     def _unwrap(self, value):
         """
@@ -86,6 +86,9 @@ class Element(RequestHelpers):
     async def get_attribute(self, name: str) -> str:
         return await self._request(url=f"/attribute/{name}", method="GET")
 
+    async def get_property(self, name: str) -> str:
+        return await self._request(url=f"/property/{name}", method="GET")
+
     async def get_css_value(self, name: str) -> str:
         return await self._request(url=f"/css/{name}", method="GET")
 
@@ -118,6 +121,11 @@ class Element(RequestHelpers):
         data = await self._request(url="/rect", method="GET")
         return Rect(data["x"], data["y"], data["width"], data["height"])
 
+    async def get_screenshot(self):
+        return BytesIO(
+            base64.b64decode(await self._request(url="/screenshot", method="GET"))
+        )
+
 
 TCallback = Callable[..., Awaitable[Any]]
 TWaiter = Callable[[int, TCallback], Awaitable[Any]]
@@ -140,8 +148,10 @@ class Session(RequestHelpers):
     ):
         return await self._request(url=url, method=method, data=data)
 
-    async def get(self, url: str):
-        await self._request(url="/url", method="POST", data={"url": self.bind + url})
+    async def get(self, url: str, timeout=None):
+        await self._request(
+            url="/url", method="POST", data={"url": self.bind + url}, timeout=timeout
+        )
 
     async def get_url(self):
         return await self._request(url="/url", method="GET")
@@ -204,6 +214,7 @@ class Session(RequestHelpers):
         domain: str = UNSET,
         secure: bool = UNSET,
         expiry: int = UNSET,
+        httponly: bool = UNSET,
     ):
         cookie = {"name": name, "value": value}
         if path is not UNSET:
@@ -214,6 +225,8 @@ class Session(RequestHelpers):
             cookie["secure"] = secure
         if expiry is not UNSET:
             cookie["expiry"] = expiry
+        if httponly is not UNSET:
+            cookie["HttpOnly"] = httponly
         await self._request(url="/cookie", method="POST", data={"cookie": cookie})
 
     async def get_cookie(self, name: str):
@@ -235,6 +248,13 @@ class Session(RequestHelpers):
             data={"script": script, "args": list(args)},
         )
 
+    async def execute_async_script(self, script: str, *args: Any):
+        return await self._request(
+            url="/execute/async",
+            method="POST",
+            data={"script": script, "args": list(args)},
+        )
+
     async def set_window_size(self, width: int, height: int, handle: str = "current"):
         return await self._request(
             url="/window/rect",
@@ -245,6 +265,16 @@ class Session(RequestHelpers):
     async def get_window_size(self, handle: str = "current") -> Tuple[int, int]:
         return await self._request(
             url="/window/rect", method="GET", data={"windowHandle": handle}
+        )
+
+    async def set_window_fullscreen(self, handle: str = "current"):
+        return await self._request(
+            url="/window/fullscreen", method="POST", data={"windowHandle": handle}
+        )
+
+    async def set_window_maximize(self, handle: str = "current"):
+        return await self._request(
+            url="/window/maximize", method="POST", data={"windowHandle": handle}
         )
 
     async def get_alert_text(self) -> str:
@@ -288,54 +318,9 @@ class Session(RequestHelpers):
             url="/window", method="POST", data={"handle": handle, "name": handle}
         )
 
-
-class CompatRequestHelpers(RequestHelpers):
-    def _check_response_error(self, status: int, data: Any):
-        if "status" in data and data["status"] != 0:
-            errors.raise_exception(data, status)
-        if status >= 400 and "value" in data and "error" in data["value"]:
-            errors.raise_exception(data, status)
-
-
-class CompatElement(CompatRequestHelpers, Element):
-    async def get_rect(self):
-        location = await self._request(url="/location", method="GET")
-        width = await self.get_css_value("width")
-        height = await self.get_css_value("height")
-        return Rect(location["x"], location["y"], px_to_int(width), px_to_int(height))
-
-
-class CompatSession(CompatRequestHelpers, Session):
-    element_class = CompatElement
-
-    async def set_window_size(self, width: int, height: int, handle: str = "current"):
+    async def new_window(self, window_type: WindowType = WindowType.tab):
         return await self._request(
-            url=f"/window/{handle}/size",
-            method="POST",
-            data={"width": width, "height": height},
-        )
-
-    async def get_window_size(self, handle: str = "current"):
-        return await self._request(url=f"/window/{handle}/size", method="GET")
-
-    async def get_window_handles(self):
-        return await self._request(url="/window_handles", method="GET")
-
-    async def get_window_handle(self):
-        return await self._request(url="/window_handle", method="GET")
-
-    async def execute_script(self, script, *args):
-        return await self._request(
-            url="/execute", method="POST", data={"script": script, "args": list(args)}
-        )
-
-    async def perform_actions(self, actions: Dict[str, Any]):
-        for url, method, data in transform_legacy_actions(actions["actions"]):
-            await self._request(url=url, method=method, data=data)
-
-    async def get_screenshot(self) -> BytesIO:
-        return BytesIO(
-            base64.b64decode(await self._request(url="/screenshot", method="GET"))
+            url="/window/new", method="POST", data={"type": window_type.value}
         )
 
 

@@ -54,6 +54,13 @@
         :param str name: Name of the attribute to get.
         :rtype: str
 
+    .. py:method:: get_property(name)
+
+        Coroutine which returns the value of a given property of this element.
+
+        :param str name: Name of the property to get.
+        :rtype: str
+
     .. py:method:: select_by_value(value)
 
         Coroutine to select an option by value. This is useful if this element is a select
@@ -155,6 +162,7 @@
         :param str domain: Optional, keyword-only domain of the cookie.
         :param bool secure: Optional, keyword-only secure flag of the cookie.
         :param int expiry: Optional, keyword-only expiration of the cookie.
+        :param bool httponly: Optional, keyword-only httponly flag of the cookie.
         :rtype: None
 
     .. py:method:: get_cookie(name)
@@ -221,6 +229,13 @@
 
         :rtype: List[str]
 
+    .. py:method:: new_window(window_type=WindowType.tab.value)
+
+        Coroutine to open new window
+
+        :param str window_type: type of the window to open: value can be "window" or "tab"
+        :rtype: dict, containing window handle and window type, example: {"handle": "17", "type": "tab"}
+
     .. py:method:: get_alert_text
 
         Coroutine to return the text of an alert message.
@@ -255,9 +270,3 @@
     .. py:method:: close
 
         Coroutine to close this session.
-
-
-
-.. py:method:: CompatSession
-
-    :py:class:`Session` subclass for webdrivers that do not support certain APIs.

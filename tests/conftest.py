@@ -31,12 +31,18 @@ def local_session_factory(
     return ctx
 
 
+if os.environ.get("APPVEYOR", "false") == "True":
+    _extra_ff_opts = {"binary": r"C:\Program Files\Mozilla Firefox\firefox.exe"}
+else:
+    _extra_ff_opts = {}
+
+
 get_ff_session = local_session_factory(
     "get_ff_session",
     "geckodriver",
     services.Geckodriver,
     browsers.Firefox,
-    {"moz:firefoxOptions": {"args": ["-headless"]}},
+    {"moz:firefoxOptions": {"args": ["-headless"], **_extra_ff_opts}},
 )
 get_chrome_session = local_session_factory(
     "get_chrome_session",
@@ -45,14 +51,14 @@ get_chrome_session = local_session_factory(
     browsers.Chrome,
     {"goog:chromeOptions": {"args": ["--headless", "--disable-gpu", "--no-sandbox"]}},
 )
-get_phantomjs_session = local_session_factory(
-    "get_phantomjs_session", "phantomjs", services.PhantomJS, browsers.PhantomJS
-)
 get_ie_session = local_session_factory(
     "get_ie_session",
     "IEDriverServer",
     services.IEDriverServer,
     browsers.InternetExplorer,
+)
+get_edge_session = local_session_factory(
+    "get_edge_session", "msedgedriver", services.MSEdgeDriver, browsers.Edge
 )
 
 
@@ -90,13 +96,11 @@ async def get_remote_session(root_url: str):
         raise pytest.skip("No remote browser configured (REMOTE_BROWSER)")
     if "REMOTE_SERVICE" not in os.environ:
         raise pytest.skip("No remote service configured (REMOTE_SERVICE)")
-    if "BROWSERSTACK_API_KEY" in os.environ:
-        context = bsl_context
-    else:
-        context = null_context
+    if "BROWSERSTACK_API_KEY" not in os.environ:
+        raise pytest.skip("No browserstack api key configured (BROWSERSTACK_API_KEY)")
     remote_browser = json.loads(os.environ["REMOTE_BROWSER"])
-    browser_cls = getattr(browsers, remote_browser.pop("type"))
-    with context():
+    browser_cls = getattr(browsers, remote_browser["browserName"])
+    with bsl_context():
         async with get_session(
             services.Remote(url=os.environ["REMOTE_SERVICE"]),
             browser_cls(**remote_browser),
@@ -106,14 +110,8 @@ async def get_remote_session(root_url: str):
 
 
 @pytest.fixture(
-    params=[
-        get_ff_session,
-        get_chrome_session,
-        get_remote_session,
-        get_phantomjs_session,
-        get_ie_session,
-    ],
-    ids=lambda func: func.__name__[4:],
+    params=[get_ff_session, get_chrome_session, get_remote_session, get_ie_session],
+    ids=lambda func: func.__name__.split("_")[1],
 )
 async def session(root_url, request) -> Session:
     async with request.param(root_url) as session:

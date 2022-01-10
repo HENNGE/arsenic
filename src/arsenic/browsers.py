@@ -1,4 +1,4 @@
-from arsenic.session import Session, CompatSession
+from arsenic.session import Session
 
 
 class Browser:
@@ -10,35 +10,23 @@ class Browser:
 
 
 class Firefox(Browser):
-    defaults = {
-        "browserName": "firefox",
-        "marionette": True,
-        "acceptInsecureCerts": True,
-    }
+    defaults = {"browserName": "firefox"}
 
 
 class Chrome(Browser):
-    session_class = CompatSession
     defaults = {"browserName": "chrome"}
-
-
-class PhantomJS(Browser):
-    session_class = CompatSession
-    defaults = {
-        "browserName": "phantomjs",
-        "version": "",
-        "platform": "ANY",
-        "javascriptEnabled": True,
-    }
 
 
 class InternetExplorer(Browser):
     session_class = Session
-    defaults = {
-        "browserName": "internet explorer",
-        "version": "",
-        "platform": "WINDOWS",
-    }
+    defaults = {"browserName": "internet explorer"}
 
 
 IE = InternetExplorer
+
+
+class MicrosoftEdge(Browser):
+    defaults = {"browserName": "MicrosoftEdge"}
+
+
+Edge = MicrosoftEdge

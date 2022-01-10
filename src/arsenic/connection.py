@@ -6,14 +6,13 @@ from io import BytesIO
 from json import JSONDecodeError
 from pathlib import Path
 from typing import Any, Tuple
-from urllib.parse import urlparse, urlunparse, unwrap
+from urllib.parse import urlparse, urlunparse
 from zipfile import ZIP_DEFLATED, ZipFile
 
-from aiohttp import ClientResponse, ClientSession
+from aiohttp import ClientSession
 from structlog import get_logger
 
 from arsenic import errors, constants
-
 
 log = get_logger()
 
@@ -32,11 +31,6 @@ def wrap_screen(data):
         and data["value"]["screen"]
     ):
         data["value"]["screen"] = BytesIO(base64.b64decode(data["value"]["screen"]))
-
-
-def check_response_error(status: int, data: Any) -> None:
-    if status >= 400:
-        errors.raise_exception(data, status)
 
 
 def unwrap(value):
@@ -73,22 +67,41 @@ def strip_auth(url: str) -> str:
     )
 
 
+def check_response_error(*, status: int, data: Any) -> None:
+    if status >= 400:
+        errors.raise_exception(data, status)
+    if not isinstance(data, dict):
+        return
+    data_status = data.get("status", None)
+    if data_status is None:
+        return
+    if data_status == constants.STATUS_SUCCESS:
+        return
+    errors.raise_exception(data, status)
+
+
 class Connection:
     def __init__(self, session: ClientSession, prefix: str):
         self.session = session
         self.prefix = prefix
 
     @ensure_task
-    async def request(self, *, url: str, method: str, data=None) -> Tuple[int, Any]:
+    async def request(
+        self, *, url: str, method: str, data=None, timeout=None
+    ) -> Tuple[int, Any]:
+        header = {"Content-Type": "application/json"}
         if data is None:
             data = {}
         if method not in {"POST", "PUT"}:
             data = None
+            header = None
         body = json.dumps(data) if data is not None else None
         full_url = self.prefix + url
-        log.info("request", url=strip_auth(full_url), method=method, body=body)
+        log.info(
+            "request", url=strip_auth(full_url), method=method, header=header, body=body
+        )
         async with self.session.request(
-            url=full_url, method=method, data=body
+            url=full_url, method=method, headers=header, data=body, timeout=timeout
         ) as response:
             response_body = await response.read()
             try:
@@ -105,6 +118,7 @@ class Connection:
                 response=response,
                 data=data,
             )
+            check_response_error(data=data, status=response.status)
             return response.status, data
 
     async def upload_file(self, path: Path) -> Path:
@@ -124,7 +138,6 @@ class RemoteConnection(Connection):
         status, data = await self.request(
             url="/file", method="POST", data={"file": content}
         )
-        check_response_error(status, data)
         value = unwrap(data.get("value", None))
         log.info("upload-file", path=path, resolved_path=value)
         return Path(value)

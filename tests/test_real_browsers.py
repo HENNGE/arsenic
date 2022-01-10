@@ -1,6 +1,6 @@
 import secrets
-from functools import partial
 from pathlib import Path
+from typing import List, Any, Dict
 
 import pytest
 from PIL import Image
@@ -8,12 +8,9 @@ from PIL import Image
 from arsenic.actions import Keyboard, Mouse, chain
 from arsenic.browsers import Firefox
 from arsenic.connection import RemoteConnection
-from arsenic.errors import NoSuchElement, OperationNotSupported
-from arsenic.session import CompatSession, Element
+from arsenic.constants import SelectorType, WindowType
+from arsenic.errors import NoSuchElement
 from arsenic.utils import Rect
-from arsenic.constants import SelectorType
-from .utils import null_context
-
 
 pytestmark = [pytest.mark.asyncio]
 
@@ -112,38 +109,30 @@ async def test_chained_actions(session):
     keyboard = Keyboard()
     canvas = await session.get_element("#canvas")
 
-    # keyboard actions cannot be emulated in non-w3c drivers
-    ctx = (
-        pytest.raises(OperationNotSupported)
-        if isinstance(session, CompatSession)
-        else null_context()
+    actions = chain(
+        mouse.move_to(canvas),
+        mouse.down() & keyboard.down("a"),
+        mouse.move_by(10, 20) & keyboard.up("a"),
+        mouse.up(),
     )
+    await check(actions, "")
 
-    with ctx:
-        actions = chain(
-            mouse.move_to(canvas),
-            mouse.down() & keyboard.down("a"),
-            mouse.move_by(10, 20) & keyboard.up("a"),
-            mouse.up(),
-        )
-        await check(actions, "")
+    actions = chain(
+        mouse.move_to(canvas),
+        mouse.down(),
+        mouse.move_by(10, 20) & keyboard.down("a"),
+        mouse.up(),
+        keyboard.up("a"),
+    )
+    await check(actions, "a" * 30)
 
-        actions = chain(
-            mouse.move_to(canvas),
-            mouse.down(),
-            mouse.move_by(10, 20) & keyboard.down("a"),
-            mouse.up(),
-            keyboard.up("a"),
-        )
-        await check(actions, "a" * 30)
-
-        actions = chain(
-            mouse.move_to(canvas),
-            mouse.down() & keyboard.down("a"),
-            mouse.move_by(10, 20) & keyboard.up("a"),
-            mouse.up(),
-        )
-        await check(actions, "")
+    actions = chain(
+        mouse.move_to(canvas),
+        mouse.down() & keyboard.down("a"),
+        mouse.move_by(10, 20) & keyboard.up("a"),
+        mouse.up(),
+    )
+    await check(actions, "")
 
 
 async def test_get_screenshot(session):
@@ -182,10 +171,6 @@ async def test_file_upload(session, tmpdir):
 
 
 async def test_change_window(session):
-    if isinstance(session, CompatSession) or isinstance(
-        session.driver.connection, RemoteConnection
-    ):
-        raise pytest.skip("not supported in compat session at the moment")
     handles = await session.get_window_handles()
     assert len(handles) == 1
     for i in range(4):
@@ -204,9 +189,16 @@ async def test_change_window(session):
 
 
 async def test_request(session):
-    if isinstance(session, CompatSession):
-        url = "/window_handles"
-    else:
-        url = "/window/handles"
+    url = "/window/handles"
     handles = await session.request(url)
     assert len(handles) == 1
+
+
+@pytest.mark.parametrize("window_type", [WindowType.tab, WindowType.window])
+async def test_new_window(session, window_type):
+    new_window_data: Dict[str, Any] = await session.new_window(window_type)
+    assert new_window_data["type"] == window_type.value
+    new_handle: str = new_window_data["handle"]
+    handles: List[str] = await session.get_window_handles()
+    assert new_handle in handles
+    assert len(handles) == 2

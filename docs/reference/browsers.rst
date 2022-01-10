@@ -36,11 +36,6 @@
     Chrome with default capabilities.
 
 
-.. py:class:: PhantomJS(Browser)
-
-    PhantomJS with default capabilities.
-
-
 .. py:class:: InternetExplorer(Browser)
 
     Internet Explorer with default capabilities.

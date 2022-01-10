@@ -18,10 +18,6 @@ Supported Browsers
      - 59
      - Geckodriver 0.20.0
      - Linux, macOS, Windows 10
-   * - PhantomJS
-     - 1.9.8
-     - PhantomJS 1.9.8
-     - Linux, macOS, Windows 10
    * - Google Chrome
      - 65
      - Chromedriver 2.37
@@ -48,14 +44,58 @@ To use Google Chrome headless, use::
         ...
 
 
+Google Chrome Device Emulation
+******************************
+
+To enable device emulation mode with Google Chrome, you can use::
+
+    from arsenic import services, browsers, get_session
+
+    service = services.Chromedriver()
+
+    device_metrics = dict(width=640, height=480, pixelRatio=1.0)
+
+    mobile_emulation = dict(deviceMetrics=device_metrics)
+
+    kwargs = {'goog:chromeOptions': dict(mobileEmulation=mobile_emulation)}
+
+    browser = browsers.Chrome(**kwargs)
+
+    async with get_session(service, browser) as session:
+        ...
+
+
+Google Chrome Device Emulation And Headless
+*******************************************
+
+To enable device emulation mode and headless mode at the same time with Google Chrome, you can use::
+
+
+    from arsenic import services, browsers
+
+    service = services.Chromedriver(binary='chromedriver')
+
+    device_metrics = dict(width=640, height=480, pixelRatio=1.0)
+
+    mobile_emulation = dict(deviceMetrics=device_metrics)
+
+    args=['--headless', '--disable-gpu']
+    kwargs = {'goog:chromeOptions': dict(mobileEmulation=mobile_emulation, args=args)}
+
+    browser = browsers.Chrome(**kwargs)
+
+    async with get_session(service, browser) as session:
+        ...
+
+
 Headless Firefox
 ****************
 
 To use Firefox headless, use::
 
     service = services.Geckodriver()
-    browser = browsers.Firefox(firefoxOptions={
+    browser = browsers.Firefox(**{"moz:firefoxOptions": {
         'args': ['-headless']
-    })
+    }})
     async with get_session(service, browser) as session:
         ...

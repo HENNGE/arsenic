@@ -76,6 +76,9 @@ IMEEngineActivationFailed = create("ime engine activation failed", 31)
 InvalidSelector = create("invalid selector", 32)
 MoveTargetOutOfBounds = create("move target out of bounds", 34)
 
+# exceptions that may indicate errors within arsenic
+ERROR_CLASSES = (UnknownArsenicError, UnknownCommand, UnknownError)
+
 
 def raise_exception(data: Dict[str, Any], status: int):
     error = None
@@ -94,12 +97,13 @@ def raise_exception(data: Dict[str, Any], status: int):
     stacktrace = data.get("stacktrace", None)
     screen = data.get("screen", None)
     exception_class = get(error)
-    log.error(
-        "error",
-        type=exception_class,
-        message=message,
-        stacktrace=stacktrace,
-        data=data,
-        status=status,
-    )
+    if exception_class in ERROR_CLASSES:
+        log.error(
+            "error",
+            type=exception_class,
+            message=message,
+            stacktrace=stacktrace,
+            data=data,
+            status=status,
+        )
     raise exception_class(message, screen, stacktrace)
