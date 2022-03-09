@@ -230,7 +230,12 @@ class Session(RequestHelpers):
             cookie["expiry"] = expiry
         if httponly is not UNSET:
             cookie["HttpOnly"] = httponly
-        await self._request(url="/cookie", method="POST", data={"cookie": cookie}, timeout=timeout)
+        await self._request(
+            url="/cookie",
+            method="POST",
+            data={"cookie": cookie},
+            timeout=timeout,
+        )
 
     async def get_cookie(self, name: str, timeout=None):
         return await self._request(url=f"/cookie/{name}", method="GET", timeout=timeout)
@@ -260,7 +265,13 @@ class Session(RequestHelpers):
             timeout=timeout,
         )
 
-    async def set_window_size(self, width: int, height: int, handle: str = "current", timeout=None):
+    async def set_window_size(
+        self,
+        width: int,
+        height: int,
+        handle: str = "current",
+        timeout=None
+    ):
         return await self._request(
             url="/window/rect",
             method="POST",
@@ -268,19 +279,32 @@ class Session(RequestHelpers):
             timeout=timeout,
         )
 
-    async def get_window_size(self, handle: str = "current", timeout=None) -> Tuple[int, int]:
+    async def get_window_size(
+        self,
+        handle: str = "current",
+        timeout=None
+    ) -> Tuple[int, int]:
         return await self._request(
-            url="/window/rect", method="GET", data={"windowHandle": handle}, timeout=timeout
+            url="/window/rect",
+            method="GET",
+            data={"windowHandle": handle},
+            timeout=timeout,
         )
 
     async def set_window_fullscreen(self, handle: str = "current", timeout=None):
         return await self._request(
-            url="/window/fullscreen", method="POST", data={"windowHandle": handle}, timeout=timeout
+            url="/window/fullscreen",
+            method="POST",
+            data={"windowHandle": handle},
+            timeout=timeout,
         )
 
     async def set_window_maximize(self, handle: str = "current", timeout=None):
         return await self._request(
-            url="/window/maximize", method="POST", data={"windowHandle": handle}, timeout=timeout
+            url="/window/maximize",
+            method="POST",
+            data={"windowHandle": handle},
+            timeout=timeout,
         )
 
     async def get_alert_text(self, timeout=None) -> str:
@@ -298,11 +322,22 @@ class Session(RequestHelpers):
         return await self._request(url="/alert/accept", method="POST", timeout=timeout)
 
     async def perform_actions(self, actions: Dict[str, Any], timeout=None):
-        return await self._request(url="/actions", method="POST", data=actions, timeout=timeout)
+        return await self._request(
+            url="/actions",
+            method="POST",
+            data=actions,
+            timeout=timeout,
+        )
 
     async def get_screenshot(self, timeout=None) -> BytesIO:
         return BytesIO(
-            base64.b64decode(await self._request(url="/screenshot", method="GET", timeout=timeout))
+            base64.b64decode(
+                await self._request(
+                    url="/screenshot",
+                    method="GET",
+                    timeout=timeout,
+                )
+            )
         )
 
     async def close(self, timeout=None):
@@ -321,12 +356,18 @@ class Session(RequestHelpers):
 
     async def switch_to_window(self, handle, timeout=None):
         return await self._request(
-            url="/window", method="POST", data={"handle": handle, "name": handle}, timeout=timeout
+            url="/window",
+            method="POST",
+            data={"handle": handle, "name": handle},
+            timeout=timeout,
         )
 
     async def new_window(self, window_type: WindowType = WindowType.tab, timeout=None):
         return await self._request(
-            url="/window/new", method="POST", data={"type": window_type.value}, timeout=timeout
+            url="/window/new",
+            method="POST",
+            data={"type": window_type.value},
+            timeout=timeout,
         )
 
 
