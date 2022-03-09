@@ -160,7 +160,10 @@ class Session(RequestHelpers):
         return await self._request(url="/source", method="GET", timeout=timeout)
 
     async def get_element(
-        self, selector: str, selector_type: SelectorType = SelectorType.css_selector, timeout=None
+        self,
+        selector: str,
+        selector_type: SelectorType = SelectorType.css_selector,
+        timeout=None,
     ) -> Element:
         element_id = await self._request(
             url="/element",
@@ -171,7 +174,10 @@ class Session(RequestHelpers):
         return self.create_element(element_id)
 
     async def get_elements(
-        self, selector: str, selector_type: SelectorType = SelectorType.css_selector, timeout=None
+        self,
+        selector: str,
+        selector_type: SelectorType = SelectorType.css_selector,
+        timeout=None,
     ) -> List[Element]:
         result = await self._request(
             url="/elements",
@@ -266,11 +272,7 @@ class Session(RequestHelpers):
         )
 
     async def set_window_size(
-        self,
-        width: int,
-        height: int,
-        handle: str = "current",
-        timeout=None
+        self, width: int, height: int, handle: str = "current", timeout=None
     ):
         return await self._request(
             url="/window/rect",
@@ -280,9 +282,7 @@ class Session(RequestHelpers):
         )
 
     async def get_window_size(
-        self,
-        handle: str = "current",
-        timeout=None
+        self, handle: str = "current", timeout=None
     ) -> Tuple[int, int]:
         return await self._request(
             url="/window/rect",
