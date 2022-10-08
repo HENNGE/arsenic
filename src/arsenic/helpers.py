@@ -8,7 +8,6 @@ if sys.platform != "win32":
     def configure_ie11_environment_cli():
         pass
 
-
 else:
     import ctypes
     import winreg
