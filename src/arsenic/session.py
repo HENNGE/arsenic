@@ -144,38 +144,46 @@ class Session(RequestHelpers):
         self.browser = browser
 
     async def request(
-        self, url: str, method: str = "GET", data: Dict[str, Any] = UNSET
+        self, url: str, method: str = "GET", data: Dict[str, Any] = UNSET, timeout=None
     ):
-        return await self._request(url=url, method=method, data=data)
+        return await self._request(url=url, method=method, data=data, timeout=timeout)
 
     async def get(self, url: str, timeout=None):
         await self._request(
             url="/url", method="POST", data={"url": self.bind + url}, timeout=timeout
         )
 
-    async def get_url(self):
-        return await self._request(url="/url", method="GET")
+    async def get_url(self, timeout=None):
+        return await self._request(url="/url", method="GET", timeout=timeout)
 
-    async def get_page_source(self) -> str:
-        return await self._request(url="/source", method="GET")
+    async def get_page_source(self, timeout=None) -> str:
+        return await self._request(url="/source", method="GET", timeout=timeout)
 
     async def get_element(
-        self, selector: str, selector_type: SelectorType = SelectorType.css_selector
+        self,
+        selector: str,
+        selector_type: SelectorType = SelectorType.css_selector,
+        timeout=None,
     ) -> Element:
         element_id = await self._request(
             url="/element",
             method="POST",
             data={"using": selector_type.value, "value": selector},
+            timeout=timeout,
         )
         return self.create_element(element_id)
 
     async def get_elements(
-        self, selector: str, selector_type: SelectorType = SelectorType.css_selector
+        self,
+        selector: str,
+        selector_type: SelectorType = SelectorType.css_selector,
+        timeout=None,
     ) -> List[Element]:
         result = await self._request(
             url="/elements",
             method="POST",
             data={"using": selector_type.value, "value": selector},
+            timeout=timeout,
         )
         return [self.create_element(element_id) for element_id in result]
 
@@ -215,6 +223,7 @@ class Session(RequestHelpers):
         secure: bool = UNSET,
         expiry: int = UNSET,
         httponly: bool = UNSET,
+        timeout=None,
     ):
         cookie = {"name": name, "value": value}
         if path is not UNSET:
@@ -227,100 +236,138 @@ class Session(RequestHelpers):
             cookie["expiry"] = expiry
         if httponly is not UNSET:
             cookie["HttpOnly"] = httponly
-        await self._request(url="/cookie", method="POST", data={"cookie": cookie})
+        await self._request(
+            url="/cookie",
+            method="POST",
+            data={"cookie": cookie},
+            timeout=timeout,
+        )
 
-    async def get_cookie(self, name: str):
-        return await self._request(url=f"/cookie/{name}", method="GET")
+    async def get_cookie(self, name: str, timeout=None):
+        return await self._request(url=f"/cookie/{name}", method="GET", timeout=timeout)
 
-    async def get_all_cookies(self):
-        return await self._request(url="/cookie", method="GET")
+    async def get_all_cookies(self, timeout=None):
+        return await self._request(url="/cookie", method="GET", timeout=timeout)
 
-    async def delete_cookie(self, name: str):
-        await self._request(url=f"/cookie/{name}", method="DELETE")
+    async def delete_cookie(self, name: str, timeout=None):
+        await self._request(url=f"/cookie/{name}", method="DELETE", timeout=timeout)
 
-    async def delete_all_cookies(self):
-        await self._request(url="/cookie", method="DELETE")
+    async def delete_all_cookies(self, timeout=None):
+        await self._request(url="/cookie", method="DELETE", timeout=timeout)
 
-    async def execute_script(self, script: str, *args: Any):
+    async def execute_script(self, script: str, *args: Any, timeout=None):
         return await self._request(
             url="/execute/sync",
             method="POST",
             data={"script": script, "args": list(args)},
+            timeout=timeout,
         )
 
-    async def execute_async_script(self, script: str, *args: Any):
+    async def execute_async_script(self, script: str, *args: Any, timeout=None):
         return await self._request(
             url="/execute/async",
             method="POST",
             data={"script": script, "args": list(args)},
+            timeout=timeout,
         )
 
-    async def set_window_size(self, width: int, height: int, handle: str = "current"):
+    async def set_window_size(
+        self, width: int, height: int, handle: str = "current", timeout=None
+    ):
         return await self._request(
             url="/window/rect",
             method="POST",
             data={"width": width, "height": height, "windowHandle": handle},
+            timeout=timeout,
         )
 
-    async def get_window_size(self, handle: str = "current") -> Tuple[int, int]:
+    async def get_window_size(
+        self, handle: str = "current", timeout=None
+    ) -> Tuple[int, int]:
         return await self._request(
-            url="/window/rect", method="GET", data={"windowHandle": handle}
+            url="/window/rect",
+            method="GET",
+            data={"windowHandle": handle},
+            timeout=timeout,
         )
 
-    async def set_window_fullscreen(self, handle: str = "current"):
+    async def set_window_fullscreen(self, handle: str = "current", timeout=None):
         return await self._request(
-            url="/window/fullscreen", method="POST", data={"windowHandle": handle}
+            url="/window/fullscreen",
+            method="POST",
+            data={"windowHandle": handle},
+            timeout=timeout,
         )
 
-    async def set_window_maximize(self, handle: str = "current"):
+    async def set_window_maximize(self, handle: str = "current", timeout=None):
         return await self._request(
-            url="/window/maximize", method="POST", data={"windowHandle": handle}
+            url="/window/maximize",
+            method="POST",
+            data={"windowHandle": handle},
+            timeout=timeout,
         )
 
-    async def get_alert_text(self) -> str:
-        return await self._request(url="/alert/text", method="GET")
+    async def get_alert_text(self, timeout=None) -> str:
+        return await self._request(url="/alert/text", method="GET", timeout=timeout)
 
-    async def send_alert_text(self, value: str):
+    async def send_alert_text(self, value: str, timeout=None):
         return await self._request(
-            url="/alert/text", method="POST", data={"text": value}
+            url="/alert/text", method="POST", data={"text": value}, timeout=timeout
         )
 
-    async def dismiss_alert(self):
-        return await self._request(url="/alert/dismiss", method="POST")
+    async def dismiss_alert(self, timeout=None):
+        return await self._request(url="/alert/dismiss", method="POST", timeout=timeout)
 
-    async def accept_alert(self):
-        return await self._request(url="/alert/accept", method="POST")
+    async def accept_alert(self, timeout=None):
+        return await self._request(url="/alert/accept", method="POST", timeout=timeout)
 
-    async def perform_actions(self, actions: Dict[str, Any]):
-        return await self._request(url="/actions", method="POST", data=actions)
+    async def perform_actions(self, actions: Dict[str, Any], timeout=None):
+        return await self._request(
+            url="/actions",
+            method="POST",
+            data=actions,
+            timeout=timeout,
+        )
 
-    async def get_screenshot(self) -> BytesIO:
+    async def get_screenshot(self, timeout=None) -> BytesIO:
         return BytesIO(
-            base64.b64decode(await self._request(url="/screenshot", method="GET"))
+            base64.b64decode(
+                await self._request(
+                    url="/screenshot",
+                    method="GET",
+                    timeout=timeout,
+                )
+            )
         )
 
-    async def close(self):
-        await self._request(url="", method="DELETE")
+    async def close(self, timeout=None):
+        await self._request(url="", method="DELETE", timeout=timeout)
 
     def create_element(self, element_id):
         return self.element_class(
             element_id, self.connection.prefixed(f"/element/{element_id}"), self
         )
 
-    async def get_window_handles(self):
-        return await self._request(url="/window/handles", method="GET")
+    async def get_window_handles(self, timeout=None):
+        return await self._request(url="/window/handles", method="GET", timeout=timeout)
 
-    async def get_window_handle(self):
-        return await self._request(url="/window", method="GET")
+    async def get_window_handle(self, timeout=None):
+        return await self._request(url="/window", method="GET", timeout=timeout)
 
-    async def switch_to_window(self, handle):
+    async def switch_to_window(self, handle, timeout=None):
         return await self._request(
-            url="/window", method="POST", data={"handle": handle, "name": handle}
+            url="/window",
+            method="POST",
+            data={"handle": handle, "name": handle},
+            timeout=timeout,
         )
 
-    async def new_window(self, window_type: WindowType = WindowType.tab):
+    async def new_window(self, window_type: WindowType = WindowType.tab, timeout=None):
         return await self._request(
-            url="/window/new", method="POST", data={"type": window_type.value}
+            url="/window/new",
+            method="POST",
+            data={"type": window_type.value},
+            timeout=timeout,
         )
 
 
