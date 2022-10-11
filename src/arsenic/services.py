@@ -52,7 +52,7 @@ async def subprocess_based_service(
                     ok = False
                 if ok:
                     return
-                await asyncio.sleep(start_timeout * 2 ** i)
+                await asyncio.sleep(start_timeout * 2**i)
 
         try:
             await asyncio.wait_for(wait_service(), timeout=start_timeout)
