@@ -1,6 +1,6 @@
 # Async Webdriver
 
-[![CircleCI](https://circleci.com/gh/HDE/arsenic/tree/main.svg?style=svg)](https://circleci.com/gh/HDE/arsenic/tree/main) [![Documentation Status](https://readthedocs.org/projects/arsenic/badge/?version=latest)](http://arsenic.readthedocs.io/en/latest/?badge=latest)
+[![CircleCI](https://circleci.com/gh/HENNGE/arsenic/tree/main.svg?style=svg)](https://circleci.com/gh/HENNGE/arsenic/tree/main) [![Documentation Status](https://readthedocs.org/projects/arsenic/badge/?version=latest)](http://arsenic.readthedocs.io/en/latest/?badge=latest)
 [![BrowserStack Status](https://automate.browserstack.com/badge.svg?badge_key=QmtNVHFnWWRFSEVUdTBZNWU5NGMraVorWVltazFqRk1VNWRydW5FRXU2dz0tLVhoTlFuK2tZUTJ1UGx0UmZaWjg4R1E9PQ==--35ef3d28fbf8ea24ee7fa2a435f9271fbaaf85d4)](https://automate.browserstack.com/public-build/QmtNVHFnWWRFSEVUdTBZNWU5NGMraVorWVltazFqRk1VNWRydW5FRXU2dz0tLVhoTlFuK2tZUTJ1UGx0UmZaWjg4R1E9PQ==--35ef3d28fbf8ea24ee7fa2a435f9271fbaaf85d4)
 [![Appveyor status](https://ci.appveyor.com/api/projects/status/8l0koom7h93y1f9q?svg=true)](https://ci.appveyor.com/project/ojii/arsenic)
 [![PyPI version](https://badge.fury.io/py/arsenic.svg)](https://badge.fury.io/py/arsenic)
