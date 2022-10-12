@@ -12,7 +12,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: deps-{{ checksum "poetry.lock" }}
+          key: deps-{{ checksum "pyproject.toml" }}
           paths:
             - .
       - run:
@@ -28,7 +28,7 @@ jobs:
             poetry config virtualenvs.in-project true
             poetry install
       - save_cache:
-          key: deps-{{ checksum "poetry.lock" }}
+          key: deps-{{ checksum "pyproject.toml" }}
           paths:
             - .
       - persist_to_workspace:
@@ -50,8 +50,7 @@ jobs:
           name: "Run Tests"
           command: |
             mkdir /home/circleci/reports/
-            ls .
-            TESTFILES=$(circleci tests glob tests/**/test*.py | circleci tests split --split-by=timings)
+            TESTFILES=$(circleci tests glob tests/test*.py | circleci tests split --split-by=timings)
             export REMOTE_SERVICE="http://${BROWSERSTACK_USERNAME}:${BROWSERSTACK_API_KEY}@hub.browserstack.com:80/wd/hub"
             export REMOTE_BROWSER="{\"bstack:options\": {\"os\": \"Windows\", \"osVersion\": \"10\", \"resolution\": \"1024x768\", \"local\": \"true\", \"seleniumVersion\": \"3.14.0\", \"localIdentifier\": \"${CIRCLE_SHA1}\", \"buildName\": \"${CIRCLE_SHA1}-${CIRCLE_BUILD_NUM}-Chrome\", \"projectName\": \"arsenic\"}, \"browserName\": \"Chrome\", \"browserVersion\": \"latest\"}"
             export BROWSERSTACK_LOCAL_IDENTIFIER="${CIRCLE_SHA1}"
