@@ -1,9 +1,14 @@
-version: 2
-jobs:
-  build:
+version: 2.1
+
+executors:
+  default:
     working_directory: /home/circleci/workspace/
     docker:
       - image: circleci/python:3.8-browsers
+
+jobs:
+  build:
+    executor: default
     steps:
       - checkout
       - run:
@@ -17,6 +22,15 @@ jobs:
           name: "Install Python Dependencies"
           command: |
             poetry install
+      - persist_to_workspace:
+          root: workspace
+          paths:
+            - .
+  test:
+    executor: default
+    steps:
+      - attach_workspace:
+          at: workspace
       - run:
           name: "Code Style Check"
           command: |
@@ -38,3 +52,11 @@ jobs:
           path: /home/circleci/reports/coverage/
     environment:
       - DOCS_DIR: "/home/circleci/workspace/docs/"
+
+workflows:
+  build_and_test:
+    jobs:
+      - build
+      - test:
+          requires:
+            - build
