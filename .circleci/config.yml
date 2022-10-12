@@ -2,7 +2,7 @@ version: 2.1
 
 executors:
   default:
-    working_directory: /home/circleci/workspace/
+    working_directory: /home/circleci/workspace
     docker:
       - image: circleci/python:3.8-browsers
 
@@ -11,6 +11,10 @@ jobs:
     executor: default
     steps:
       - checkout
+      - restore_cache:
+          key: deps-{{ checksum "poetry.lock" }}
+          paths:
+            - .
       - run:
           name: "Install Browserstack tools"
           command: |
@@ -21,16 +25,21 @@ jobs:
       - run:
           name: "Install Python Dependencies"
           command: |
+            poetry config virtualenvs.in-project true
             poetry install
+      - save_cache:
+          key: deps-{{ checksum "poetry.lock" }}
+          paths:
+            - .
       - persist_to_workspace:
-          root: workspace
+          root: /home/circleci
           paths:
             - .
   test:
     executor: default
     steps:
       - attach_workspace:
-          at: workspace
+          at: /home/circleci
       - run:
           name: "Code Style Check"
           command: |
@@ -41,15 +50,18 @@ jobs:
           name: "Run Tests"
           command: |
             mkdir /home/circleci/reports/
+            ls .
+            TESTFILES=$(circleci tests glob tests/**/test*.py | circleci tests split --split-by=timings)
             export REMOTE_SERVICE="http://${BROWSERSTACK_USERNAME}:${BROWSERSTACK_API_KEY}@hub.browserstack.com:80/wd/hub"
             export REMOTE_BROWSER="{\"bstack:options\": {\"os\": \"Windows\", \"osVersion\": \"10\", \"resolution\": \"1024x768\", \"local\": \"true\", \"seleniumVersion\": \"3.14.0\", \"localIdentifier\": \"${CIRCLE_SHA1}\", \"buildName\": \"${CIRCLE_SHA1}-${CIRCLE_BUILD_NUM}-Chrome\", \"projectName\": \"arsenic\"}, \"browserName\": \"Chrome\", \"browserVersion\": \"latest\"}"
             export BROWSERSTACK_LOCAL_IDENTIFIER="${CIRCLE_SHA1}"
             export BROWSERSTACKLOCAL_BINARY="/home/circleci/bin/BrowserStackLocal"
-            poetry run pytest --verbose --cov arsenic --cov-report html:/home/circleci/reports/coverage/ --junitxml /home/circleci/reports/junit.xml
+            poetry run pytest --verbose --cov arsenic --cov-report html:/home/circleci/reports/coverage/ --junitxml /home/circleci/reports/junit.xml $TESTFILES
       - store_test_results:
           path: /home/circleci/reports/junit.xml
       - store_artifacts:
           path: /home/circleci/reports/coverage/
+    parallelism: 4
     environment:
       - DOCS_DIR: "/home/circleci/workspace/docs/"
 
