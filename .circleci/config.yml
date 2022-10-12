@@ -1,10 +1,13 @@
 version: 2.1
 
+orbs:
+  browser-tools: circleci/browser-tools@1.4.0
+
 executors:
   default:
     working_directory: /home/circleci/workspace
     docker:
-      - image: circleci/python:3.8-browsers
+      - image: cimg/python:3.8-browsers
 
 jobs:
   build:
@@ -46,6 +49,7 @@ jobs:
             export LC_ALL=C.UTF-8
             export LANG=C.UTF-8
             poetry run black --check --line-length=88 --safe src tests
+      - browser-tools/install-browser-tools
       - run:
           name: "Run Tests"
           command: |
